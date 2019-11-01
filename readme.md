@@ -24,7 +24,7 @@ or
 
 ```jsx
 const ref = useRef()
-const [, bounds] = useMeasure(ref)
+const bounds = useMeasure(ref)
 return <div ref={ref} />
 ```
 

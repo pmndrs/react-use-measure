@@ -39,13 +39,13 @@ interface ResizeObserver {
   disconnect(): void
 }
 
-type DivRef = React.MutableRefObject<HTMLDivElement | null>
-type Measure = [DivRef, RectReadOnly]
+type Ref = React.MutableRefObject<HTMLElement | null>
+type Result = [Ref, RectReadOnly]
 
-function useMeasure(): Measure
-function useMeasure(ref: DivRef): RectReadOnly
-function useMeasure(maybeRef?: DivRef): Measure | RectReadOnly {
-  const ref = maybeRef || useRef<HTMLDivElement>(null)
+function useMeasure(): Result
+function useMeasure(ref: Ref): RectReadOnly
+function useMeasure(maybeRef?: Ref): Result | RectReadOnly {
+  const ref = maybeRef || useRef<HTMLElement>(null)
   const [bounds, set] = useState<RectReadOnly>({
     left: 0,
     top: 0,
