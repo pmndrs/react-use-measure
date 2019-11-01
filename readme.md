@@ -1,5 +1,7 @@
     npm install resize-observer-polyfill react-use-measure
 
+This small tool will measure the bounds of the view you reference. It is reactive and responds to size (or scroll) changes that affect the views size or position.
+
 # Usage
 
 ```jsx
@@ -11,10 +13,8 @@ import ResizeObserver from 'resize-observer-polyfill'
 function App() {
   const [ref, bounds] = useMeasure()
 
-  // bound will contain the bounds of the referenced view
   // consider that knowing bounds is only possible *after* the view renders
   // so you'll get zero values on the first run and be informed later
-  // useMeasure is reactive and will respond to size changes of the view area
 
   return <div ref={ref} />
 }
