@@ -4,7 +4,7 @@
   "description": "measure view bounds",
   "main": "./dist/web.cjs.js",
   "module": "./dist/web.js",
-  "types": "./types/src/index.d.ts",
+  "types": "./types/index.d.ts",
   "sideEffects": false,
   "scripts": {
     "prebuild": "rimraf dist && npm run typegen",
