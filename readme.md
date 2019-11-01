@@ -43,6 +43,6 @@ interface RectReadOnly {
 }
 
 useMeasure(
-  ref?: React.MutableRefObject<HTMLDivElement>
-): [React.MutableRefObject<HTMLDivElement>, RectReadOnly]
+  ref?: React.MutableRefObject<HTMLElement>
+): [React.MutableRefObject<HTMLElement>, RectReadOnly]
 ```
