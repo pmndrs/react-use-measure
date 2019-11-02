@@ -1,4 +1,8 @@
-import { useRef, useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
+import findScrollContainers from './findScrollContainers'
+import useElementState from './useElementState'
+import useOnScroll from './useOnScroll'
+import areBoundsEqual from './areBoundsEqual'
 
 export interface RectReadOnly {
   readonly x: number
@@ -39,13 +43,15 @@ interface ResizeObserver {
   disconnect(): void
 }
 
-type Ref = React.MutableRefObject<HTMLElement | null>
+type Ref = (element: HTMLElement | null) => void
 type Result = [Ref, RectReadOnly]
 
-function useMeasure(): Result
-function useMeasure(ref: Ref): RectReadOnly
-function useMeasure(maybeRef?: Ref): Result | RectReadOnly {
-  const ref = maybeRef || useRef<HTMLElement>(null)
+type ElementState = {
+  element: HTMLElement | null
+  scrollContainers: HTMLElement[] | null
+}
+
+function useMeasure(): Result {
   const [bounds, set] = useState<RectReadOnly>({
     left: 0,
     top: 0,
@@ -56,29 +62,45 @@ function useMeasure(maybeRef?: Ref): Result | RectReadOnly {
     x: 0,
     y: 0,
   })
-  const [ro] = useState(
-    () =>
-      new ResizeObserver(() => {
-        if (!ref.current) return
-        const { pageXOffset, pageYOffset } = window
-        const { left, top, width, height, bottom, right, x, y } = ref.current.getBoundingClientRect() as RectReadOnly
-        const size = { left, top, width, height, bottom, right, x, y }
-        size.top += pageYOffset
-        size.bottom += pageYOffset
-        size.y += pageYOffset
-        size.left += pageXOffset
-        size.right += pageXOffset
-        size.x += pageXOffset
-        Object.freeze(size)
-        return set(size)
-      })
+
+  const lastBounds = useRef(bounds)
+
+  const [ref, { element, scrollContainers }] = useElementState<ElementState>(
+    {
+      element: null,
+      scrollContainers: null,
+    },
+    element => ({
+      element,
+      scrollContainers: findScrollContainers(element),
+    })
   )
+
+  const handleBoundsChange = useCallback(() => {
+    if (!element) {
+      return
+    }
+    // const { pageXOffset, pageYOffset } = window
+    const { left, top, width, height, bottom, right, x, y } = element.getBoundingClientRect() as RectReadOnly
+    const size = { left, top, width, height, bottom, right, x, y }
+    Object.freeze(size)
+
+    if (!areBoundsEqual(lastBounds.current, size)) {
+      lastBounds.current = size
+      set(size)
+    }
+  }, [element, set])
+
+  useOnScroll(scrollContainers, handleBoundsChange)
+
   useEffect(() => {
-    if (ref.current) ro.observe(ref.current)
+    const ro = new ResizeObserver(handleBoundsChange)
+
+    if (element) ro.observe(element)
     return () => ro.disconnect()
-  }, [])
-  if (!maybeRef) return [ref, bounds]
-  return bounds
+  }, [element])
+
+  return [ref, bounds]
 }
 
 export default useMeasure

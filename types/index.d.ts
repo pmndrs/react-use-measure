@@ -1,4 +1,3 @@
-/// <reference types="react" />
 export interface RectReadOnly {
   readonly x: number
   readonly y: number
@@ -23,6 +22,7 @@ declare global {
     disconnect(): void
   }
 }
-declare type Measure = [React.MutableRefObject<HTMLDivElement | null>, RectReadOnly]
-export default function useMeasure(): Measure
-export {}
+declare type Ref = (element: HTMLElement | null) => void
+declare type Result = [Ref, RectReadOnly]
+declare function useMeasure(): Result
+export default useMeasure
