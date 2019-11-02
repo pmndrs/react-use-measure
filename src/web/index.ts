@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
+import { debounce as createDebounce } from 'debounce'
 import findScrollContainers from './findScrollContainers'
 import useElementState from './useElementState'
 import useOnScroll from './useOnScroll'
@@ -51,7 +52,11 @@ type ElementState = {
   scrollContainers: HTMLElement[] | null
 }
 
-function useMeasure(): Result {
+type Options = {
+  debounce?: number
+}
+
+function useMeasure({ debounce }: Options = { debounce: 0 }): Result {
   const [bounds, set] = useState<RectReadOnly>({
     left: 0,
     top: 0,
@@ -76,20 +81,23 @@ function useMeasure(): Result {
     })
   )
 
-  const handleBoundsChange = useCallback(() => {
-    if (!element) {
-      return
-    }
-    // const { pageXOffset, pageYOffset } = window
-    const { left, top, width, height, bottom, right, x, y } = element.getBoundingClientRect() as RectReadOnly
-    const size = { left, top, width, height, bottom, right, x, y }
-    Object.freeze(size)
+  const handleBoundsChange = useMemo(() => {
+    const callback = () => {
+      if (!element) {
+        return
+      }
+      const { left, top, width, height, bottom, right, x, y } = element.getBoundingClientRect() as RectReadOnly
+      const size = { left, top, width, height, bottom, right, x, y }
+      Object.freeze(size)
 
-    if (!areBoundsEqual(lastBounds.current, size)) {
-      lastBounds.current = size
-      set(size)
+      if (!areBoundsEqual(lastBounds.current, size)) {
+        lastBounds.current = size
+        set(size)
+      }
     }
-  }, [element, set])
+
+    return debounce ? createDebounce(callback, debounce) : callback
+  }, [element, set, debounce])
 
   useOnScroll(scrollContainers, handleBoundsChange)
 

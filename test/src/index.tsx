@@ -71,7 +71,7 @@ const Box = React.forwardRef(function Box(_, ref: any) {
 })
 
 function Example() {
-  const [ref, bounds] = useMeasure()
+  const [ref, bounds] = useMeasure({ debounce: 100 })
 
   return (
     <>

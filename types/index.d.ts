@@ -24,5 +24,8 @@ declare global {
 }
 declare type Ref = (element: HTMLElement | null) => void
 declare type Result = [Ref, RectReadOnly]
-declare function useMeasure(): Result
+declare type Options = {
+  debounce?: number
+}
+declare function useMeasure({ debounce }?: Options): Result
 export default useMeasure
