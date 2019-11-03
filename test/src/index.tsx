@@ -20,10 +20,10 @@ function ScrollBox({ size, color, children }: { size: number | string; color: st
   )
 }
 
-const MeasuredBox = React.forwardRef(({ children }: { children: any }, ref: any) => {
+const MeasuredBox = React.forwardRef(({ children, color }: { children: any; color: string }, ref: any) => {
   const [big, setBig] = React.useState(false)
   return (
-    <Box ref={ref} onClick={() => setBig(!big)} size={big ? 250 : 200}>
+    <Box ref={ref} onClick={() => setBig(!big)} size={big ? 250 : 200} color={color}>
       {children}
     </Box>
   )
@@ -33,11 +33,11 @@ function Example() {
   const [ref, bounds] = useMeasure({ debounce: 0 })
   return (
     <>
-      <Global />
+      <Global color="white" />
       <div style={{ width: '100vw', height: '300vh', paddingTop: '25vh' }}>
-        <ScrollBox size="50vh" color="#d2d2d2">
-          <ScrollBox size="40vh" color="white">
-            <MeasuredBox ref={ref}>
+        <ScrollBox size="50vh" color="#272730">
+          <ScrollBox size="40vh" color="#676770">
+            <MeasuredBox ref={ref} color="#F7567C">
               <span>top</span>
               <span>{Math.round(bounds.top)}px</span>
               <span>left</span>
