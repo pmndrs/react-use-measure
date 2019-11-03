@@ -65,11 +65,7 @@ function useMeasure({ debounce }: Options = { debounce: 0 }): Result {
   return [ref, bounds]
 }
 
-/**
- * Hook which let you reference an element and stores state
- * based off that same element
- * See: https://reactjs.org/docs/hooks-faq.html#how-can-i-measure-a-dom-node
- */
+// Lets you reference an element and stores state based off that same element
 function useElementState<T>(initialState: T, elementToState: (element: HTMLElement) => T) {
   const [state, setState] = useState<T>(initialState)
   const lastElement = useRef<HTMLElement | null>(null)
@@ -81,6 +77,7 @@ function useElementState<T>(initialState: T, elementToState: (element: HTMLEleme
   return [ref, state] as [(node: HTMLElement | null) => void, T]
 }
 
+// Adds native scroll listeners to a list of elements
 function useOnScroll(scrollContainers: HTMLElement[] | null, onScroll: (event: Event) => void) {
   useEffect(() => {
     if (!scrollContainers) return
@@ -91,6 +88,7 @@ function useOnScroll(scrollContainers: HTMLElement[] | null, onScroll: (event: E
   }, [onScroll, scrollContainers])
 }
 
+// Returns a list of scroll offsets
 function findScrollContainers(element: HTMLElement | null): HTMLElement[] {
   const result: HTMLElement[] = []
   if (!element || element === document.body) return result
@@ -99,6 +97,7 @@ function findScrollContainers(element: HTMLElement | null): HTMLElement[] {
   return [...result, ...findScrollContainers(element.parentElement)]
 }
 
+// Checks if element boundaries are equal
 const keys: (keyof RectReadOnly)[] = ['x', 'y', 'top', 'bottom', 'left', 'right', 'width', 'height']
 function areBoundsEqual(a: RectReadOnly, b: RectReadOnly): boolean {
   return keys.every(key => a[key] === b[key])
