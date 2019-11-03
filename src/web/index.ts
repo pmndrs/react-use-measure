@@ -1,9 +1,8 @@
-import { useEffect, useState, useRef, useMemo } from 'react'
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react'
 import { debounce as createDebounce } from 'debounce'
-import findScrollContainers from './findScrollContainers'
-import useElementState from './useElementState'
-import useOnScroll from './useOnScroll'
-import areBoundsEqual from './areBoundsEqual'
+import ResizeObserver from 'resize-observer-polyfill'
+
+console.log('hello')
 
 export interface RectReadOnly {
   readonly x: number
@@ -16,34 +15,6 @@ export interface RectReadOnly {
   readonly left: number
 }
 
-declare global {
-  interface ResizeObserverCallback {
-    (entries: ResizeObserverEntry[], observer: ResizeObserver): void
-  }
-
-  interface ResizeObserverEntry {
-    readonly target: Element
-    readonly contentRect: DOMRectReadOnly
-  }
-
-  interface ResizeObserver {
-    observe(target: Element): void
-    unobserve(target: Element): void
-    disconnect(): void
-  }
-}
-
-declare var ResizeObserver: {
-  prototype: ResizeObserver
-  new (callback: ResizeObserverCallback): ResizeObserver
-}
-
-interface ResizeObserver {
-  observe(target: Element): void
-  unobserve(target: Element): void
-  disconnect(): void
-}
-
 type Ref = (element: HTMLElement | null) => void
 type Result = [Ref, RectReadOnly]
 
@@ -52,9 +23,7 @@ type ElementState = {
   scrollContainers: HTMLElement[] | null
 }
 
-type Options = {
-  debounce?: number
-}
+type Options = { debounce?: number }
 
 function useMeasure({ debounce }: Options = { debounce: 0 }): Result {
   const [bounds, set] = useState<RectReadOnly>({
@@ -71,31 +40,17 @@ function useMeasure({ debounce }: Options = { debounce: 0 }): Result {
   const lastBounds = useRef(bounds)
 
   const [ref, { element, scrollContainers }] = useElementState<ElementState>(
-    {
-      element: null,
-      scrollContainers: null,
-    },
-    element => ({
-      element,
-      scrollContainers: findScrollContainers(element),
-    })
+    { element: null, scrollContainers: null },
+    element => ({ element, scrollContainers: findScrollContainers(element) })
   )
 
   const handleBoundsChange = useMemo(() => {
     const callback = () => {
-      if (!element) {
-        return
-      }
-      const { left, top, width, height, bottom, right, x, y } = element.getBoundingClientRect() as RectReadOnly
-      const size = { left, top, width, height, bottom, right, x, y }
+      if (!element) return
+      const size = element.getBoundingClientRect() as RectReadOnly
       Object.freeze(size)
-
-      if (!areBoundsEqual(lastBounds.current, size)) {
-        lastBounds.current = size
-        set(size)
-      }
+      if (!areBoundsEqual(lastBounds.current, size)) set((lastBounds.current = size))
     }
-
     return debounce ? createDebounce(callback, debounce) : callback
   }, [element, set, debounce])
 
@@ -103,12 +58,50 @@ function useMeasure({ debounce }: Options = { debounce: 0 }): Result {
 
   useEffect(() => {
     const ro = new ResizeObserver(handleBoundsChange)
-
     if (element) ro.observe(element)
     return () => ro.disconnect()
   }, [element])
 
   return [ref, bounds]
+}
+
+/**
+ * Hook which let you reference an element and stores state
+ * based off that same element
+ * See: https://reactjs.org/docs/hooks-faq.html#how-can-i-measure-a-dom-node
+ */
+function useElementState<T>(initialState: T, elementToState: (element: HTMLElement) => T) {
+  const [state, setState] = useState<T>(initialState)
+  const lastElement = useRef<HTMLElement | null>(null)
+  const ref = useCallback(
+    // did the reference change?
+    node => node && node !== lastElement.current && setState(elementToState((lastElement.current = node))),
+    [initialState]
+  )
+  return [ref, state] as [(node: HTMLElement | null) => void, T]
+}
+
+function useOnScroll(scrollContainers: HTMLElement[] | null, onScroll: (event: Event) => void) {
+  useEffect(() => {
+    if (!scrollContainers) return
+    const cb = onScroll
+    const elements = [window, ...scrollContainers]
+    elements.forEach(element => element.addEventListener('scroll', cb))
+    return () => elements.forEach(element => element.removeEventListener('scroll', cb))
+  }, [onScroll, scrollContainers])
+}
+
+function findScrollContainers(element: HTMLElement | null): HTMLElement[] {
+  const result: HTMLElement[] = []
+  if (!element || element === document.body) return result
+  const { overflow, overflowX, overflowY } = window.getComputedStyle(element)
+  if ([overflow, overflowX, overflowY].some(prop => prop === 'auto' || prop === 'scroll')) result.push(element)
+  return [...result, ...findScrollContainers(element.parentElement)]
+}
+
+const keys: (keyof RectReadOnly)[] = ['x', 'y', 'top', 'bottom', 'left', 'right', 'width', 'height']
+function areBoundsEqual(a: RectReadOnly, b: RectReadOnly): boolean {
+  return keys.every(key => a[key] === b[key])
 }
 
 export default useMeasure

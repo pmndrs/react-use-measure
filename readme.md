@@ -1,14 +1,11 @@
-    npm install resize-observer-polyfill react-use-measure
+    yarn add react-use-measure
 
-This small tool will measure the bounds of the view you reference. It is reactive and responds to size (or scroll) changes that affect the views size or position.
+This small tool will measure the boundaries of a view you reference. It is reactive and responds to changes in size, window-scroll and nested-area-scroll. It uses the [resize-observer-polyfill](https://github.com/que-etc/resize-observer-polyfill) on platforms that do not support resize observers.
 
 # Usage
 
 ```jsx
 import useMeasure from 'react-use-measure'
-// This step is optional, resize observers are supported by most browsers
-// See: https://caniuse.com/#feat=resizeobserver
-import ResizeObserver from 'resize-observer-polyfill'
 
 function App() {
   const [ref, bounds] = useMeasure()
@@ -20,15 +17,7 @@ function App() {
 }
 ```
 
-or
-
-```jsx
-const ref = useRef()
-const bounds = useMeasure(ref)
-return <div ref={ref} />
-```
-
-# API
+# Api
 
 ```jsx
 interface RectReadOnly {
@@ -42,7 +31,13 @@ interface RectReadOnly {
   readonly left: number
 }
 
+type Options = { debounce?: number }
+
 useMeasure(
-  ref?: React.MutableRefObject<HTMLElement>
+  options: Options = { debounce: 0 }
 ): [React.MutableRefObject<HTMLElement>, RectReadOnly]
 ```
+
+### ⚠️ Notes
+
+useMeasure currently returns its own ref. We do this because we are using functional refs for unmount tracking. If you need to have a ref of your own on the same element, use [react-merge-refs](https://github.com/smooth-code/react-merge-refs).
