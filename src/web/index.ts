@@ -81,8 +81,8 @@ function useOnScroll(scrollContainers: HTMLElement[] | null, onScroll: (event: E
     if (!scrollContainers) return
     const cb = onScroll
     const elements = [window, ...scrollContainers]
-    elements.forEach(element => element.addEventListener('scroll', cb))
-    return () => elements.forEach(element => element.removeEventListener('scroll', cb))
+    elements.forEach(element => element.addEventListener('scroll', cb, { capture: true, passive: true }))
+    return () => elements.forEach(element => element.removeEventListener('scroll', cb, true))
   }, [onScroll, scrollContainers])
 }
 
