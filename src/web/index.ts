@@ -13,8 +13,7 @@ export interface RectReadOnly {
   readonly left: number
 }
 
-type Ref = (element: HTMLElement | null) => void
-type Result = [Ref, RectReadOnly]
+type Result = [(element: HTMLElement | null) => void, RectReadOnly]
 
 type ElementState = {
   element: HTMLElement | null
