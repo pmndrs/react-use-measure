@@ -36,6 +36,13 @@
     "hooks"
   ],
   "author": "Paul Henschel",
+  "contributors": [
+    {
+      "name": "Erik Verweij",
+      "url": "https://github.com/everweij",
+      "email": "info@erikverweij.com"
+    }
+  ],
   "license": "MIT",
   "peerDependencies": {
     "react": ">=16.11",
