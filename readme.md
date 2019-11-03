@@ -34,9 +34,9 @@ interface RectReadOnly {
 }
 
 type Options = {
-  // Millisecond debounce for events, default: 0
+  // Debounce events in milliseconds
   debounce?: number | { scroll: number; resize: number }
-  // React to nested scroll changes, default: false
+  // React to nested scroll changes
   scroll?: boolean
 }
 
