@@ -2,6 +2,10 @@
 
 This small tool will measure the boundaries of a view you reference. It is reactive and responds to changes in size, window-scroll and nested-area-scroll. It uses the [resize-observer-polyfill](https://github.com/que-etc/resize-observer-polyfill) on platforms that do not support resize observers.
 
+### Why do we need this hook?
+
+Because there is no simple way to just get relative coordinates for a [view rect](https://stackoverflow.com/questions/442404/retrieve-the-position-x-y-of-an-html-element). Yes, there is getBoundingClientRect, but it does not work when your content sits inside scroll areas whose offsets ary simply neglected (as well as page scroll). Worse, mouse coordinates are relative to the viewport (the visible rect that contains the page), there is no way, for instance, to know that the mouse hovers over the upper/left corner of an element. This hook solves it for you.
+
 You can try a live demo here: https://codesandbox.io/s/musing-kare-4fblz
 
 # Usage
