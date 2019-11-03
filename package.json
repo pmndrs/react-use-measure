@@ -17,7 +17,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged"
+      "pre-commit": "pretty-quick"
     }
   },
   "prettier": {
@@ -27,12 +27,6 @@
     "jsxBracketSameLine": true,
     "tabWidth": 2,
     "printWidth": 120
-  },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "prettier --write",
-      "git add"
-    ]
   },
   "keywords": [
     "react",
@@ -69,8 +63,8 @@
     "eslint-plugin-react": "^7.16.0",
     "eslint-plugin-react-hooks": "^2.2.0",
     "husky": "^3.0.9",
-    "lint-staged": "^9.4.2",
     "prettier": "^1.18.2",
+    "pretty-quick": "^2.0.0",
     "react": "^16.11.0",
     "react-dom": "^16.11.0",
     "rimraf": "^3.0.0",
