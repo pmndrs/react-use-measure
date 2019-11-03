@@ -4,7 +4,7 @@
 
     yarn add react-use-measure
 
-This small tool will measure the boundaries of a view you reference. It is reactive and responds to changes in size, window-scroll and nested-area-scroll. It uses the [resize-observer-polyfill](https://github.com/que-etc/resize-observer-polyfill) on platforms that do not support resize observers.
+This small tool will measure the boundaries (for instance width, height, top, left) of a view you reference. It is reactive and responds to changes in size, window-scroll and nested-area-scroll. It uses the [resize-observer-polyfill](https://github.com/que-etc/resize-observer-polyfill) on platforms that do not support resize observers.
 
 ### Why do we need this hook?
 
@@ -44,7 +44,7 @@ interface RectReadOnly {
 type Options = {
   // Debounce events in milliseconds
   debounce?: number | { scroll: number; resize: number }
-  // React to nested scroll changes
+  // React to nested scroll changes, don't use this if you know your view is static
   scroll?: boolean
 }
 
