@@ -1,6 +1,9 @@
 node_modules/
 coverage/
 dist/
+types/
+yarn-error.log
+.size-snapshot.json
 Thumbs.db
 ehthumbs.db
 Desktop.ini
