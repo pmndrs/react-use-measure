@@ -30,7 +30,7 @@ const MeasuredBox = React.forwardRef(({ children, color }: { children: any; colo
 })
 
 function Example() {
-  const [ref, bounds] = useMeasure({ debounce: 0 })
+  const [ref, bounds] = useMeasure({ scroll: true })
   return (
     <>
       <Global color="white" />

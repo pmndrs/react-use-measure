@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "@types/react": "link:../node_modules/@types/react",
-    "@types/react-dom": "^16.9.3",
+    "@types/react-dom": "link:../node_modules/@types/react-dom",
     "typescript": "link:../node_modules/typescript"
   },
   "scripts": {

@@ -21,9 +21,12 @@ type ElementState = {
   scrollContainers: HTMLElement[] | null
 }
 
-type Options = { debounce?: number }
+type Options = {
+  debounce?: number | { scroll: number; resize: number }
+  scroll?: boolean
+}
 
-function useMeasure({ debounce }: Options = { debounce: 0 }): Result {
+function useMeasure({ debounce, scroll }: Options = { debounce: 0, scroll: false }): Result {
   const [bounds, set] = useState<RectReadOnly>({
     left: 0,
     top: 0,
@@ -37,25 +40,28 @@ function useMeasure({ debounce }: Options = { debounce: 0 }): Result {
 
   const lastBounds = useRef(bounds)
 
-  const [ref, { element, scrollContainers }] = useElementState<ElementState>(
+  let [ref, { element, scrollContainers }] = useElementState<ElementState>(
     { element: null, scrollContainers: null },
     element => ({ element, scrollContainers: findScrollContainers(element) })
   )
 
-  const handleBoundsChange = useMemo(() => {
+  const [resizeChange, scrollChange] = useMemo(() => {
     const callback = () => {
       if (!element) return
       const size = element.getBoundingClientRect() as RectReadOnly
       Object.freeze(size)
       if (!areBoundsEqual(lastBounds.current, size)) set((lastBounds.current = size))
     }
-    return debounce ? createDebounce(callback, debounce) : callback
+    return [
+      debounce ? createDebounce(callback, typeof debounce === 'number' ? debounce : debounce.resize) : callback,
+      debounce ? createDebounce(callback, typeof debounce === 'number' ? debounce : debounce.scroll) : callback,
+    ]
   }, [element, set, debounce])
 
-  useOnScroll(scrollContainers, handleBoundsChange)
+  useOnScroll(scroll ? scrollContainers : null, scrollChange)
 
   useEffect(() => {
-    const ro = new ResizeObserver(handleBoundsChange)
+    const ro = new ResizeObserver(resizeChange)
     if (element) ro.observe(element)
     return () => ro.disconnect()
   }, [element])

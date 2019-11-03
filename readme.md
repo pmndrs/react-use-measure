@@ -10,7 +10,7 @@ You can try a live demo here: https://codesandbox.io/s/musing-kare-4fblz
 import useMeasure from 'react-use-measure'
 
 function App() {
-  const [ref, bounds] = useMeasure()
+  const [ref, bounds] = useMeasure({ scroll: true })
 
   // consider that knowing bounds is only possible *after* the view renders
   // so you'll get zero values on the first run and be informed later
@@ -33,10 +33,13 @@ interface RectReadOnly {
   readonly left: number
 }
 
-type Options = { debounce?: number }
+type Options = {
+  debounce?: number | { scroll: number; resize: number }
+  scroll?: boolean
+}
 
 useMeasure(
-  options: Options = { debounce: 0 }
+  options: Options = { debounce: 0, scroll: false }
 ): [React.MutableRefObject<HTMLElement>, RectReadOnly]
 ```
 
