@@ -11,6 +11,7 @@ export interface RectReadOnly {
   readonly right: number
   readonly bottom: number
   readonly left: number
+  [key: string]: number
 }
 
 type Result = [(element: HTMLElement | null) => void, RectReadOnly]
@@ -47,7 +48,8 @@ function useMeasure({ debounce, scroll }: Options = { debounce: 0, scroll: false
   const [resizeChange, scrollChange] = useMemo(() => {
     const callback = () => {
       if (!element) return
-      const size = element.getBoundingClientRect() as RectReadOnly
+      const { left, top, width, height, bottom, right, x, y } = element.getBoundingClientRect() as RectReadOnly
+      const size = { left, top, width, height, bottom, right, x, y }
       Object.freeze(size)
       if (!areBoundsEqual(lastBounds.current, size)) set((lastBounds.current = size))
     }

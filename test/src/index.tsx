@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import ReactDOM from 'react-dom'
-import useMeasure from 'react-use-measure'
+import useMeasure, { RectReadOnly } from 'react-use-measure'
+import { useSpring, animated as a } from 'react-spring'
 import { Global, Box, ScrollArea, ScrollContent } from './styles'
 
 function ScrollBox({ size, color, children }: { size: number | string; color: string; children: any }) {
@@ -31,29 +32,39 @@ const MeasuredBox = React.forwardRef(({ children, color }: { children: any; colo
 
 function Example() {
   const [ref, bounds] = useMeasure({ scroll: true })
+  const prev = useRef<RectReadOnly>(bounds)
+  useEffect(() => void (prev.current = { ...bounds }), [bounds])
+
+  const inter = (o: any) => `rgba(0,0,0,${o})`
+  const springs: any = useSpring({
+    reset: true,
+    from: Object.keys(bounds).reduce((acc, key) => ({ ...acc, [key]: prev.current[key] !== bounds[key] ? 1 : 0 }), {}),
+    to: Object.keys(bounds).reduce((acc, key) => ({ ...acc, [key]: 0 }), {}),
+  })
+
   return (
     <>
       <Global color="white" />
-      <div style={{ width: '100vw', height: '300vh', paddingTop: '25vh' }}>
-        <ScrollBox size="50vh" color="#272730">
-          <ScrollBox size="40vh" color="#676770">
+      <div style={{ width: '100vw', height: '300vh', paddingTop: '20vh' }}>
+        <ScrollBox size="60vh" color="#272730">
+          <ScrollBox size="50vh" color="#676770">
             <MeasuredBox ref={ref} color="#F7567C">
               <span>top</span>
-              <span>{Math.round(bounds.top)}px</span>
+              <a.span style={{ background: springs.top.interpolate(inter) }}>{Math.round(bounds.top)}px</a.span>
               <span>left</span>
-              <span>{Math.round(bounds.left)}px</span>
+              <a.span style={{ background: springs.left.interpolate(inter) }}>{Math.round(bounds.left)}px</a.span>
               <span>width</span>
-              <span>{Math.round(bounds.width)}px</span>
+              <a.span style={{ background: springs.width.interpolate(inter) }}>{Math.round(bounds.width)}px</a.span>
               <span>height</span>
-              <span>{Math.round(bounds.height)}px</span>
+              <a.span style={{ background: springs.height.interpolate(inter) }}>{Math.round(bounds.height)}px</a.span>
               <span>bottom</span>
-              <span>{Math.round(bounds.bottom)}px</span>
+              <a.span style={{ background: springs.bottom.interpolate(inter) }}>{Math.round(bounds.bottom)}px</a.span>
               <span>right</span>
-              <span>{Math.round(bounds.right)}px</span>
+              <a.span style={{ background: springs.right.interpolate(inter) }}>{Math.round(bounds.right)}px</a.span>
               <span>x</span>
-              <span>{Math.round(bounds.x)}px</span>
+              <a.span style={{ background: springs.x.interpolate(inter) }}>{Math.round(bounds.x)}px</a.span>
               <span>y</span>
-              <span>{Math.round(bounds.y)}px</span>
+              <a.span style={{ background: springs.y.interpolate(inter) }}>{Math.round(bounds.y)}px</a.span>
             </MeasuredBox>
           </ScrollBox>
         </ScrollBox>
