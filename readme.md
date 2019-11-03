@@ -1,5 +1,5 @@
 <p align="center">
-  <img height="400" src="https://i.imgur.com/dNTitwr.jpg" />
+  <img height="400" src="https://i.imgur.com/eMYYMla.jpg" />
 </p>
 
     yarn add react-use-measure
