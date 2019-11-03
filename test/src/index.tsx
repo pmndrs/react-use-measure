@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react'
 import ReactDOM from 'react-dom'
+import React, { Fragment, useEffect, useRef } from 'react'
 import useMeasure, { RectReadOnly } from 'react-use-measure'
 import { useSpring, animated as a } from 'react-spring'
 import { Global, Box, ScrollArea, ScrollContent } from './styles'
@@ -49,22 +49,12 @@ function Example() {
         <ScrollBox size="60vh" color="#272730">
           <ScrollBox size="50vh" color="#676770">
             <MeasuredBox ref={ref} color="#F7567C">
-              <span>top</span>
-              <a.span style={{ background: springs.top.interpolate(inter) }}>{Math.round(bounds.top)}px</a.span>
-              <span>left</span>
-              <a.span style={{ background: springs.left.interpolate(inter) }}>{Math.round(bounds.left)}px</a.span>
-              <span>width</span>
-              <a.span style={{ background: springs.width.interpolate(inter) }}>{Math.round(bounds.width)}px</a.span>
-              <span>height</span>
-              <a.span style={{ background: springs.height.interpolate(inter) }}>{Math.round(bounds.height)}px</a.span>
-              <span>bottom</span>
-              <a.span style={{ background: springs.bottom.interpolate(inter) }}>{Math.round(bounds.bottom)}px</a.span>
-              <span>right</span>
-              <a.span style={{ background: springs.right.interpolate(inter) }}>{Math.round(bounds.right)}px</a.span>
-              <span>x</span>
-              <a.span style={{ background: springs.x.interpolate(inter) }}>{Math.round(bounds.x)}px</a.span>
-              <span>y</span>
-              <a.span style={{ background: springs.y.interpolate(inter) }}>{Math.round(bounds.y)}px</a.span>
+              {Object.keys(bounds).map(key => (
+                <Fragment key={key}>
+                  <span>{key}</span>
+                  <a.span style={{ background: springs[key].interpolate(inter) }}>{Math.round(bounds[key])}px</a.span>
+                </Fragment>
+              ))}
             </MeasuredBox>
           </ScrollBox>
         </ScrollBox>
