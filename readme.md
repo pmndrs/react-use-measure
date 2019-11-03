@@ -1,3 +1,7 @@
+<p align="center">
+  <img height="400" src="https://i.imgur.com/R4xdyMH.jpg" />
+</p>
+
     yarn add react-use-measure
 
 This small tool will measure the boundaries of a view you reference. It is reactive and responds to changes in size, window-scroll and nested-area-scroll. It uses the [resize-observer-polyfill](https://github.com/que-etc/resize-observer-polyfill) on platforms that do not support resize observers.
