@@ -2,8 +2,6 @@ import { useEffect, useState, useRef, useMemo, useCallback } from 'react'
 import { debounce as createDebounce } from 'debounce'
 import ResizeObserver from 'resize-observer-polyfill'
 
-console.log('hello')
-
 export interface RectReadOnly {
   readonly x: number
   readonly y: number
