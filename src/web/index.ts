@@ -59,6 +59,8 @@ function useMeasure({ debounce, scroll }: Options = { debounce: 0, scroll: false
 
   useOnScroll(scroll ? scrollContainers : null, scrollChange)
 
+  useOnWindowResize(resizeChange)
+
   useEffect(() => {
     const ro = new ResizeObserver(resizeChange)
     if (element) ro.observe(element)
@@ -89,6 +91,15 @@ function useOnScroll(scrollContainers: HTMLElement[] | null, onScroll: (event: E
     elements.forEach(element => element.addEventListener('scroll', cb, { capture: true, passive: true }))
     return () => elements.forEach(element => element.removeEventListener('scroll', cb, true))
   }, [onScroll, scrollContainers])
+}
+
+// Adds native resize listener to window
+function useOnWindowResize(onWindowResize: (event: Event) => void) {
+  useEffect(() => {
+    const cb = onWindowResize
+    window.addEventListener('resize', cb)
+    return () => window.removeEventListener('resize', cb)
+  }, [onWindowResize])
 }
 
 // Returns a list of scroll offsets
