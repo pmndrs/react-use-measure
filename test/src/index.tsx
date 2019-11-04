@@ -1,7 +1,7 @@
-import React, { Fragment, useState } from "react"
-import ReactDOM from "react-dom"
-import useMeasure from "react-use-measure"
-import { Global, Box, ScrollArea, ScrollContent } from "./styles"
+import React, { Fragment, useState } from 'react'
+import ReactDOM from 'react-dom'
+import useMeasure from 'react-use-measure'
+import { Global, Box, ScrollArea, ScrollContent } from './styles'
 
 function ScrollBox({ size, color, children }: { size: number | string; color: string; children: any }) {
   const scrollBoxRef = React.useRef<HTMLDivElement | null>(null)
@@ -59,7 +59,7 @@ function Example() {
   return (
     <>
       <Global color="white" />
-      <div style={{ width: "100vw", height: "300vh", paddingTop: "20vh" }}>
+      <div style={{ width: '100vw', height: '300vh', paddingTop: '20vh' }}>
         <ScrollBox size="60vh" color="#272730">
           <ScrollBox size="50vh" color="#676770">
             <MeasuredBox color="#F7567C" />
@@ -70,4 +70,4 @@ function Example() {
   )
 }
 
-ReactDOM.render(<Example />, document.getElementById("root"))
+ReactDOM.render(<Example />, document.getElementById('root'))
