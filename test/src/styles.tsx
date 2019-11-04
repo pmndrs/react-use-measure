@@ -57,11 +57,12 @@ const ScrollArea = styled.div<{ size: number | string; color: string }>`
   overflow: auto;
   margin-left: auto;
   margin-right: auto;
+  border-radius: 7px;
 `
 
 const ScrollContent = styled.div`
-  width: 2000px;
-  height: 2000px;
+  width: 1000px;
+  height: 1000px;
   display: flex;
   justify-content: center;
   align-items: center;

@@ -1,6 +1,7 @@
-import React, { Fragment, useState } from 'react'
+import React, { Fragment, useEffect, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 import useMeasure from 'react-use-measure'
+import { useSpring, animated as a } from 'react-spring'
 import { Global, Box, ScrollArea, ScrollContent } from './styles'
 
 function ScrollBox({ size, color, children }: { size: number | string; color: string; children: any }) {
@@ -9,8 +10,8 @@ function ScrollBox({ size, color, children }: { size: number | string; color: st
   React.useLayoutEffect(() => {
     if (!scrollBoxRef.current) return
     const { width, height } = scrollBoxRef.current!.getBoundingClientRect()
-    scrollBoxRef.current.scrollTop = 2000 / 2 - height / 2
-    scrollBoxRef.current.scrollLeft = 2000 / 2 - width / 2
+    scrollBoxRef.current.scrollTop = 1000 / 2 - height / 2
+    scrollBoxRef.current.scrollLeft = 1000 / 2 - width / 2
   }, [])
 
   return (
@@ -24,9 +25,15 @@ function MeasuredBox({ color }: { color: string }) {
   // This line is all you need ...
   const [ref, bounds] = useMeasure({ scroll: true })
   // The rest is just for effects, hover and mouse tracking
+  const prev = useRef(bounds)
   const [big, setBig] = useState(false)
   const [hovered, setHover] = useState(false)
   const [xy, setXY] = useState([0, 0])
+  const [springs, set] = useSpring(() => Object.keys(bounds).reduce((acc, key) => ({ ...acc, [key]: 0 }), {}))
+  useEffect(() => {
+    set(Object.keys(bounds).reduce((acc, key) => ({ ...acc, [key]: prev.current[key] !== bounds[key] ? 1 : 0 }), {}))
+    prev.current = { ...bounds }
+  }, [bounds, set])
 
   return (
     <Box
@@ -40,7 +47,9 @@ function MeasuredBox({ color }: { color: string }) {
       {Object.keys(bounds).map(key => (
         <Fragment key={key}>
           <span>{key}</span>
-          <span>{Math.round(bounds[key])}px</span>
+          <a.span style={{ background: springs[key].interpolate((o: any) => `rgba(0,0,0,${o})`) }}>
+            {Math.round(bounds[key])}px
+          </a.span>
         </Fragment>
       ))}
       {hovered && (
@@ -59,7 +68,7 @@ function Example() {
   return (
     <>
       <Global color="white" />
-      <div style={{ width: '100vw', height: '300vh', paddingTop: '20vh' }}>
+      <div style={{ width: '150vw', height: '150vh', marginLeft: '-25vw', paddingTop: '20vh' }}>
         <ScrollBox size="60vh" color="#272730">
           <ScrollBox size="50vh" color="#676770">
             <MeasuredBox color="#F7567C" />
