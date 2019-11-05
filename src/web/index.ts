@@ -22,7 +22,7 @@ type ElementState = {
   scrollContainers: HTMLElement[] | null
 }
 
-type Options = {
+export type Options = {
   debounce?: number | { scroll: number; resize: number }
   scroll?: boolean
 }
