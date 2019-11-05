@@ -85,6 +85,7 @@
     "typescript": "^3.6.4"
   },
   "dependencies": {
+    "@juggle/resize-observer": "^2.4.0",
     "debounce": "^1.2.0",
     "resize-observer-polyfill": "^1.5.1"
   }

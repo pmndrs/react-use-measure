@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react'
 import { debounce as createDebounce } from 'debounce'
-import ResizeObserver from 'resize-observer-polyfill'
+import { ResizeObserver as Polyfill } from '@juggle/resize-observer'
+const ResizeObserver = (window && (window as any).ResizeObserver) || Polyfill
 
 export interface RectReadOnly {
   readonly x: number

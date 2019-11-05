@@ -47,7 +47,7 @@ function MeasuredBox({ color }: { color: string }) {
       {Object.keys(bounds).map(key => (
         <Fragment key={key}>
           <span>{key}</span>
-          <a.span style={{ background: springs[key].interpolate((o: any) => `rgba(0,0,0,${o})`) }}>
+          <a.span style={{ background: (springs as any)[key].interpolate((o: any) => `rgba(0,0,0,${o})`) }}>
             {Math.round(bounds[key])}px
           </a.span>
         </Fragment>
