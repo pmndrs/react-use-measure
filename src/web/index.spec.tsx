@@ -45,8 +45,8 @@ const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
  */
 
 afterEach(() => {
-    cleanup();
-    window.scrollTo({ top: 0, left: 0})
+  cleanup()
+  window.scrollTo({ top: 0, left: 0 })
 })
 
 describe('useMeasure', () => {
@@ -61,7 +61,7 @@ describe('useMeasure', () => {
           <Box ref={!switchRef ? ref : undefined} data-testid="box" big={big} onClick={() => setBig(!big)}>
             {JSON.stringify(bounds)}
           </Box>
-            <div style={{ width: 2000, height: 2000 }} /> 
+          <div style={{ width: 2000, height: 2000 }} />
         </Wrapper>
         <div ref={switchRef ? ref : null}>Dummy</div>
       </>
@@ -125,15 +125,15 @@ describe('useMeasure', () => {
   it('debounces the scroll events', async () => {
     const tools = render(<Test scroll debounce={{ scroll: 50, resize: 0 }} />)
 
-    const wrapper = tools.getByTestId('wrapper');
+    const wrapper = tools.getByTestId('wrapper')
 
-    wrapper.scrollTo({ top: 200 });
-    wrapper.scrollTo({ top: 201 });
-    wrapper.scrollTo({ top: 202 });
+    wrapper.scrollTo({ top: 200 })
+    wrapper.scrollTo({ top: 201 })
+    wrapper.scrollTo({ top: 202 })
 
     expect(getBounds(tools).top).toBe(0)
 
-    await wait(60);
+    await wait(60)
     expect(getBounds(tools).top).toBe(-202)
   })
 
@@ -141,7 +141,7 @@ describe('useMeasure', () => {
   xit('detects changes in ref', async () => {
     const tools = render(<Test />)
 
-    await wait(100);
+    await wait(100)
 
     tools.rerender(<Test switchRef />)
 
