@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react'
 import { debounce as createDebounce } from 'debounce'
 import { ResizeObserver as Polyfill } from '@juggle/resize-observer'
-const ResizeObserver = (window && (window as any).ResizeObserver) || Polyfill
+const ResizeObserver =
+  typeof window !== 'undefined' ? (window as any).ResizeObserver || Polyfill : class ResizeObserver {}
 
 export interface RectReadOnly {
   readonly x: number
@@ -126,3 +127,11 @@ const keys: (keyof RectReadOnly)[] = ['x', 'y', 'top', 'bottom', 'left', 'right'
 const areBoundsEqual = (a: RectReadOnly, b: RectReadOnly): boolean => keys.every(key => a[key] === b[key])
 
 export default useMeasure
+
+if (
+  typeof module !== 'undefined' &&
+  Object.getOwnPropertyDescriptor &&
+  Object.getOwnPropertyDescriptor(module, 'exports')!.writable
+) {
+  module.exports = useMeasure
+}
