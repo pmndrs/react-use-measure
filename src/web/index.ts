@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo, useCallback } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import { debounce as createDebounce } from 'debounce'
 import { ResizeObserver as Polyfill } from '@juggle/resize-observer'
 const ResizeObserver = (window && (window as any).ResizeObserver) || Polyfill
@@ -17,9 +17,11 @@ export interface RectReadOnly {
 
 type Result = [(element: HTMLElement | null) => void, RectReadOnly]
 
-type ElementState = {
+type State = {
   element: HTMLElement | null
   scrollContainers: HTMLElement[] | null
+  resizeObserver: Polyfill | null
+  lastBounds: RectReadOnly
 }
 
 export type Options = {
@@ -39,13 +41,19 @@ function useMeasure({ debounce, scroll }: Options = { debounce: 0, scroll: false
     y: 0,
   })
 
-  const lastBounds = useRef(bounds)
+  // keep all state in a ref
+  const state = useRef<State>({
+    element: null,
+    scrollContainers: null,
+    resizeObserver: null,
+    lastBounds: bounds
+  });
 
-  let [ref, state] = useElementState<ElementState>({ element: null, scrollContainers: null }, element => ({
-    element,
-    scrollContainers: findScrollContainers(element),
-  }))
+  // set actual debounce values early, so effects know if they should react accordingly 
+  const scrollDebounce = debounce ? typeof debounce === "number" ? debounce : debounce.scroll : null;
+  const resizeDebounce = debounce ? typeof debounce === "number" ? debounce : debounce.resize : null;
 
+  // memoize handlers, so event-listeners know when they should update
   const [resizeChange, scrollChange] = useMemo(() => {
     const callback = () => {
       if (!state.current.element) return
@@ -61,46 +69,73 @@ function useMeasure({ debounce, scroll }: Options = { debounce: 0, scroll: false
       } = state.current.element.getBoundingClientRect() as RectReadOnly
       const size = { left, top, width, height, bottom, right, x, y }
       Object.freeze(size)
-      if (!areBoundsEqual(lastBounds.current, size)) set((lastBounds.current = size))
+      if (!areBoundsEqual(state.current.lastBounds, size)) set((state.current.lastBounds = size))
     }
     return [
-      debounce ? createDebounce(callback, typeof debounce === 'number' ? debounce : debounce.resize) : callback,
-      debounce ? createDebounce(callback, typeof debounce === 'number' ? debounce : debounce.scroll) : callback,
+      resizeDebounce ? createDebounce(callback, resizeDebounce) : callback,
+      scrollDebounce ? createDebounce(callback, scrollDebounce) : callback,
     ]
-  }, [set, debounce])
+  }, [set, scrollDebounce, resizeDebounce])
 
-  useOnScroll(scroll ? state.current.scrollContainers : null, scrollChange)
+  // cleanup current scroll-listeners / observers
+  function removeListeners() {
+    if (state.current.scrollContainers) {
+      state.current.scrollContainers.forEach(element => {
+        element.removeEventListener('scroll', scrollChange, true)
+      })
+      state.current.scrollContainers = null
+    }
+
+    if (state.current.resizeObserver) {
+      state.current.resizeObserver.disconnect()
+      state.current.resizeObserver = null
+    }
+  }
+
+  // add scroll-listeners / observers
+  function addListeners() {
+    if (!state.current.element) {
+      return;
+    }
+    state.current.resizeObserver = new ResizeObserver(scrollChange)
+    state.current.resizeObserver!.observe(state.current.element)
+    
+    if (scroll && state.current.scrollContainers) {
+      state.current.scrollContainers.forEach(scrollContainer => {
+        scrollContainer.addEventListener('scroll', scrollChange, { capture: true, passive: true })
+      })
+    }
+  }
+
+  // the ref we expose to the user
+  const ref = (node: HTMLElement | null) => {
+    if (!node || node === state.current.element) {
+      return
+    }
+    removeListeners()
+
+    state.current.element = node;
+    state.current.scrollContainers = findScrollContainers(node);
+
+    addListeners()
+  }
+
+  // add general event listeners
+  useOnWindowScroll(scrollChange, Boolean(scroll));
   useOnWindowResize(resizeChange)
+
+  // respond to changes that are relevant for the listeners
   useEffect(() => {
-    const ro = new ResizeObserver(resizeChange)
-    if (state.current.element) ro.observe(state.current.element)
-    return () => ro.disconnect()
-  }, [state.current.element, resizeChange])
+    removeListeners()
+    addListeners()
+  }, [scroll, scrollChange, resizeChange])
+
+  // remove all listeners when the components unmounts
+  useEffect(() => {
+    return removeListeners
+  }, []);
 
   return [ref, bounds]
-}
-
-// Lets you reference an element and stores state based off that same element
-function useElementState<T>(initialState: T, elementToState: (element: HTMLElement) => T) {
-  const state = useRef<T>(initialState)
-  const lastElement = useRef<HTMLElement | null>(null)
-  const ref = useCallback(
-    // did the reference change?
-    node => node && node !== lastElement.current && (state.current = elementToState((lastElement.current = node))),
-    [elementToState]
-  )
-  return [ref, state] as [(node: HTMLElement | null) => void, React.MutableRefObject<T>]
-}
-
-// Adds native scroll listeners to a list of elements
-function useOnScroll(scrollContainers: HTMLElement[] | null, onScroll: (event: Event) => void) {
-  useEffect(() => {
-    if (!scrollContainers) return
-    const cb = onScroll
-    const elements = [window, ...scrollContainers]
-    elements.forEach(element => element.addEventListener('scroll', cb, { capture: true, passive: true }))
-    return () => elements.forEach(element => element.removeEventListener('scroll', cb, true))
-  }, [onScroll, scrollContainers])
 }
 
 // Adds native resize listener to window
@@ -108,8 +143,19 @@ function useOnWindowResize(onWindowResize: (event: Event) => void) {
   useEffect(() => {
     const cb = onWindowResize
     window.addEventListener('resize', cb)
-    return () => window.removeEventListener('resize', cb)
+    return () => {
+      window.removeEventListener('resize', cb)
+    }
   }, [onWindowResize])
+}
+function useOnWindowScroll(onScroll: () => void, enabled: boolean) {
+  useEffect(() => {
+    if (enabled) {
+      const cb = onScroll
+      window.addEventListener('scroll', cb, { capture: true, passive: true })
+      return () => window.removeEventListener('scroll', cb, true)
+    }
+  }, [onScroll, enabled])
 }
 
 // Returns a list of scroll offsets
