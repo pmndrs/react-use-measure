@@ -51,9 +51,9 @@ afterEach(() => {
 
 describe('useMeasure', () => {
   type Props = {
-    switchRef?: boolean;
-    onRender?: () => void;
-    options?: Options;
+    switchRef?: boolean
+    onRender?: () => void
+    options?: Options
   }
 
   function Test({ switchRef, options, onRender }: Props) {
@@ -61,7 +61,7 @@ describe('useMeasure', () => {
     const [big, setBig] = React.useState(false)
 
     if (onRender) {
-      onRender();
+      onRender()
     }
 
     return (
@@ -88,13 +88,13 @@ describe('useMeasure', () => {
   })
 
   it('renders 1 additional time after first render', async () => {
-    let count = 0;
+    let count = 0
 
-    const tools = render(<Test onRender={() => (count++)} />)
+    const tools = render(<Test onRender={() => count++} />)
 
-    await nextFrame();
+    await nextFrame()
 
-    expect(count).toBe(2);
+    expect(count).toBe(2)
   })
 
   it('gives correct dimensions and positions after initial render', async () => {
@@ -132,7 +132,7 @@ describe('useMeasure', () => {
     expect(getBounds(tools).left).toBe(0)
   })
   it('gives correct dimensions and positions when the wrapper is scrolled', async () => {
-    const tools = render(<Test options={{ scroll: true }}  />)
+    const tools = render(<Test options={{ scroll: true }} />)
 
     tools.getByTestId('wrapper').scrollTo({ top: 200 })
 
@@ -148,11 +148,11 @@ describe('useMeasure', () => {
     const wrapper = tools.getByTestId('wrapper')
 
     wrapper.scrollTo({ top: 200 })
-    await nextFrame();
+    await nextFrame()
     wrapper.scrollTo({ top: 201 })
-    await nextFrame();
+    await nextFrame()
     wrapper.scrollTo({ top: 202 })
-    await nextFrame();
+    await nextFrame()
 
     expect(getBounds(tools).top).toBe(0)
 

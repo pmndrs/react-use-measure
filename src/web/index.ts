@@ -46,12 +46,12 @@ function useMeasure({ debounce, scroll }: Options = { debounce: 0, scroll: false
     element: null,
     scrollContainers: null,
     resizeObserver: null,
-    lastBounds: bounds
-  });
+    lastBounds: bounds,
+  })
 
-  // set actual debounce values early, so effects know if they should react accordingly 
-  const scrollDebounce = debounce ? typeof debounce === "number" ? debounce : debounce.scroll : null;
-  const resizeDebounce = debounce ? typeof debounce === "number" ? debounce : debounce.resize : null;
+  // set actual debounce values early, so effects know if they should react accordingly
+  const scrollDebounce = debounce ? (typeof debounce === 'number' ? debounce : debounce.scroll) : null
+  const resizeDebounce = debounce ? (typeof debounce === 'number' ? debounce : debounce.resize) : null
 
   // memoize handlers, so event-listeners know when they should update
   const [resizeChange, scrollChange] = useMemo(() => {
@@ -95,11 +95,11 @@ function useMeasure({ debounce, scroll }: Options = { debounce: 0, scroll: false
   // add scroll-listeners / observers
   function addListeners() {
     if (!state.current.element) {
-      return;
+      return
     }
     state.current.resizeObserver = new ResizeObserver(scrollChange)
     state.current.resizeObserver!.observe(state.current.element)
-    
+
     if (scroll && state.current.scrollContainers) {
       state.current.scrollContainers.forEach(scrollContainer => {
         scrollContainer.addEventListener('scroll', scrollChange, { capture: true, passive: true })
@@ -114,14 +114,14 @@ function useMeasure({ debounce, scroll }: Options = { debounce: 0, scroll: false
     }
     removeListeners()
 
-    state.current.element = node;
-    state.current.scrollContainers = findScrollContainers(node);
+    state.current.element = node
+    state.current.scrollContainers = findScrollContainers(node)
 
     addListeners()
   }
 
   // add general event listeners
-  useOnWindowScroll(scrollChange, Boolean(scroll));
+  useOnWindowScroll(scrollChange, Boolean(scroll))
   useOnWindowResize(resizeChange)
 
   // respond to changes that are relevant for the listeners
@@ -133,7 +133,7 @@ function useMeasure({ debounce, scroll }: Options = { debounce: 0, scroll: false
   // remove all listeners when the components unmounts
   useEffect(() => {
     return removeListeners
-  }, []);
+  }, [])
 
   return [ref, bounds]
 }
