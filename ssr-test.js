@@ -1,10 +1,7 @@
 require('@babel/register')({
   ignore: [],
-  presets: [
-    ['@babel/preset-env', { modules: 'commonjs' }],
-    '@babel/preset-typescript'
-  ],
-  extensions: [".js", '.jsx', '.ts', '.tsx']
+  presets: [['@babel/preset-env', { modules: 'commonjs' }], '@babel/preset-typescript'],
+  extensions: ['.js', '.jsx', '.ts', '.tsx'],
 })
 const React = require('react')
 const ReactDOMServer = require('react-dom/server')
