@@ -1,8 +1,14 @@
 import { useEffect, useState, useRef, useMemo } from 'react'
 import { debounce as createDebounce } from 'debounce'
-import { ResizeObserver as Polyfill } from '@juggle/resize-observer'
-const ResizeObserver =
-  typeof window !== 'undefined' ? (window as any).ResizeObserver || Polyfill : class ResizeObserver {}
+
+declare type ResizeObserverCallback = (entries: any[], observer: ResizeObserver) => void
+declare class ResizeObserver {
+  constructor(callback: ResizeObserverCallback)
+  observe(target: Element, options?: any): void
+  unobserve(target: Element): void
+  disconnect(): void
+  static toString(): string
+}
 
 export interface RectReadOnly {
   readonly x: number
@@ -21,7 +27,7 @@ type Result = [(element: HTMLElement | null) => void, RectReadOnly]
 type State = {
   element: HTMLElement | null
   scrollContainers: HTMLElement[] | null
-  resizeObserver: Polyfill | null
+  resizeObserver: ResizeObserver | null
   lastBounds: RectReadOnly
 }
 
@@ -30,7 +36,19 @@ export type Options = {
   scroll?: boolean
 }
 
-function useMeasure({ debounce, scroll }: Options = { debounce: 0, scroll: false }): Result {
+function useMeasure(
+  { debounce, scroll }: Options = { debounce: 0, scroll: false },
+  injectedResizeObserver?: { new (cb: ResizeObserverCallback): ResizeObserver }
+): Result {
+  const ResizeObserver =
+    injectedResizeObserver || (typeof window === 'undefined' ? class ResizeObserver {} : (window as any).ResizeObserver)
+
+  if (!ResizeObserver) {
+    throw new Error(
+      'This browser does not support `ResizeObserver` out of the box. Please use a global polyfill, or provide a polyfill as a second argument to `useMeasure()`.'
+    )
+  }
+
   const [bounds, set] = useState<RectReadOnly>({
     left: 0,
     top: 0,

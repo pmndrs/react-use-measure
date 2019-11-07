@@ -812,11 +812,6 @@
     "@types/istanbul-reports" "^1.1.1"
     "@types/yargs" "^13.0.0"
 
-"@juggle/resize-observer@^2.4.0":
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/@juggle/resize-observer/-/resize-observer-2.4.0.tgz#8693fc08e49625eabd146751870e95d7a1eb556f"
-  integrity sha512-iBxD3plYdW4+yryivUWtfHy+B2wwQsdET6eviABx9QJKjokf0lBOZH853I31sbccskPsagtulW0ik1SWDek4RQ==
-
 "@sheerun/mutationobserver-shim@^0.3.2":
   version "0.3.2"
   resolved "https://registry.yarnpkg.com/@sheerun/mutationobserver-shim/-/mutationobserver-shim-0.3.2.tgz#8013f2af54a2b7d735f71560ff360d3a8176a87b"

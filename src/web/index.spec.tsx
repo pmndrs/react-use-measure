@@ -2,6 +2,7 @@ import * as React from 'react'
 import styled, { createGlobalStyle } from 'styled-components'
 import expect from 'expect'
 import { render, cleanup, RenderResult, fireEvent } from '@testing-library/react'
+import Polyfill from 'resize-observer-polyfill';
 
 import useMeasure, { Options } from '.'
 
@@ -40,6 +41,18 @@ const getBounds = (tools: RenderResult): ClientRect => JSON.parse(tools.getByTes
 const nextFrame = () => new Promise(resolve => setTimeout(resolve, 1000 / 60))
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
+function ignoreWindowErrors(test: () => void) {
+  const onErrorBackup = window.onerror;
+  window.onerror = () => null;
+  const consoleError = console.error;
+  console.error = () => null;
+
+  test();
+
+  window.onerror = onErrorBackup;
+  console.error = consoleError;
+}
+
 /**
  * Tests
  */
@@ -54,10 +67,11 @@ describe('useMeasure', () => {
     switchRef?: boolean
     onRender?: () => void
     options?: Options
+    polyfill?: boolean
   }
 
-  function Test({ switchRef, options, onRender }: Props) {
-    const [ref, bounds] = useMeasure(options)
+  function Test({ switchRef, options, onRender, polyfill }: Props) {
+    const [ref, bounds] = useMeasure(options, polyfill ? Polyfill : undefined)
     const [big, setBig] = React.useState(false)
 
     if (onRender) {
@@ -172,4 +186,30 @@ describe('useMeasure', () => {
 
     expect(getBounds(tools).top).toBe(500)
   })
+
+  it('throws an descriptive error when the browser does not support ResizeObserver', () => {
+    const RO = (window as any).ResizeObserver;
+    (window as any).ResizeObserver = null;
+
+    ignoreWindowErrors(() => {
+      expect(() => render(<Test />)).toThrow(
+        "This browser does not support `ResizeObserver` out of the box. Please provide a polyfill as a second argument to `useMeasure()`."
+      );
+    });
+
+    (window as any).ResizeObserver = RO;
+  });
+
+  it('does not throw when a ResizeObserver polyfill was provided', () => {
+    const RO = (window as any).ResizeObserver;
+    (window as any).ResizeObserver = null;
+
+    ignoreWindowErrors(() => {
+      expect(() => render(<Test polyfill />)).not.toThrow(
+        "This browser does not support `ResizeObserver` out of the box. Please provide a polyfill as a second argument to `useMeasure()`."
+      );
+    });
+
+    (window as any).ResizeObserver = RO;
+  });
 })
