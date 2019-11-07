@@ -196,7 +196,6 @@ describe('useMeasure', () => {
         'This browser does not support `ResizeObserver` out of the box. Please provide a polyfill as a second argument to `useMeasure()`.'
       )
     })
-
     ;(window as any).ResizeObserver = RO
   })
 
@@ -209,7 +208,6 @@ describe('useMeasure', () => {
         'This browser does not support `ResizeObserver` out of the box. Please provide a polyfill as a second argument to `useMeasure()`.'
       )
     })
-
     ;(window as any).ResizeObserver = RO
   })
 })
