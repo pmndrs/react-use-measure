@@ -50,9 +50,19 @@ afterEach(() => {
 })
 
 describe('useMeasure', () => {
-  function Test({ switchRef, ...options }: Options & { switchRef?: boolean }) {
-    const [ref, bounds] = useMeasure()
+  type Props = {
+    switchRef?: boolean
+    onRender?: () => void
+    options?: Options
+  }
+
+  function Test({ switchRef, options, onRender }: Props) {
+    const [ref, bounds] = useMeasure(options)
     const [big, setBig] = React.useState(false)
+
+    if (onRender) {
+      onRender()
+    }
 
     return (
       <>
@@ -75,6 +85,16 @@ describe('useMeasure', () => {
     expect(getBounds(tools).height).toBe(0)
     expect(getBounds(tools).top).toBe(0)
     expect(getBounds(tools).left).toBe(0)
+  })
+
+  it('renders 1 additional time after first render', async () => {
+    let count = 0
+
+    const tools = render(<Test onRender={() => count++} />)
+
+    await nextFrame()
+
+    expect(count).toBe(2)
   })
 
   it('gives correct dimensions and positions after initial render', async () => {
@@ -102,7 +122,7 @@ describe('useMeasure', () => {
   })
 
   it('gives correct dimensions and positions when the page is scrolled', async () => {
-    const tools = render(<Test scroll />)
+    const tools = render(<Test options={{ scroll: true }} />)
 
     window.scrollTo({ top: 200 })
 
@@ -112,7 +132,7 @@ describe('useMeasure', () => {
     expect(getBounds(tools).left).toBe(0)
   })
   it('gives correct dimensions and positions when the wrapper is scrolled', async () => {
-    const tools = render(<Test scroll />)
+    const tools = render(<Test options={{ scroll: true }} />)
 
     tools.getByTestId('wrapper').scrollTo({ top: 200 })
 
@@ -123,22 +143,25 @@ describe('useMeasure', () => {
   })
 
   it('debounces the scroll events', async () => {
-    const tools = render(<Test scroll debounce={{ scroll: 50, resize: 0 }} />)
+    const tools = render(<Test options={{ scroll: true, debounce: { scroll: 50, resize: 0 } }} />)
 
     const wrapper = tools.getByTestId('wrapper')
 
     wrapper.scrollTo({ top: 200 })
+    await nextFrame()
     wrapper.scrollTo({ top: 201 })
+    await nextFrame()
     wrapper.scrollTo({ top: 202 })
+    await nextFrame()
 
     expect(getBounds(tools).top).toBe(0)
 
-    await wait(60)
+    await wait(100)
     expect(getBounds(tools).top).toBe(-202)
   })
 
   // this one fails and needs to be fixed
-  xit('detects changes in ref', async () => {
+  it('detects changes in ref', async () => {
     const tools = render(<Test />)
 
     await wait(100)
@@ -147,6 +170,6 @@ describe('useMeasure', () => {
 
     await nextFrame()
 
-    expect(getBounds(tools).top).toBe(200)
+    expect(getBounds(tools).top).toBe(500)
   })
 })

@@ -23,7 +23,7 @@ function ScrollBox({ size, color, children }: { size: number | string; color: st
 
 function MeasuredBox({ color }: { color: string }) {
   // This line is all you need ...
-  const [ref, bounds] = useMeasure({ scroll: true, debounce: { scroll: 50, resize: 0 } })
+  const [ref, bounds] = useMeasure({ scroll: true, debounce: { scroll: 0, resize: 0 } })
   // The rest is just for effects, hover and mouse tracking
   const prev = useRef(bounds)
   const [big, setBig] = useState(false)
