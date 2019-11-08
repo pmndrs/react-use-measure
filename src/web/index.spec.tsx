@@ -193,7 +193,7 @@ describe('useMeasure', () => {
 
     ignoreWindowErrors(() => {
       expect(() => render(<Test />)).toThrow(
-        'This browser does not support `ResizeObserver` out of the box. Please use a global polyfill, or provide a polyfill as a second argument to `useMeasure()`.'
+        'This browser does not support ResizeObserver out of the box. See: https://github.com/react-spring/react-use-measure/#resize-observer-polyfills'
       )
     })
     ;(window as any).ResizeObserver = RO
@@ -205,7 +205,7 @@ describe('useMeasure', () => {
 
     ignoreWindowErrors(() => {
       expect(() => render(<Test polyfill />)).not.toThrow(
-        'This browser does not support `ResizeObserver` out of the box. Please use a global polyfill, or provide a polyfill as a second argument to `useMeasure()`.'
+        'This browser does not support ResizeObserver out of the box. See: https://github.com/react-spring/react-use-measure/#resize-observer-polyfills'
       )
     })
     ;(window as any).ResizeObserver = RO
