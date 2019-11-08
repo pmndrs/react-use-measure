@@ -71,7 +71,7 @@ describe('useMeasure', () => {
   }
 
   function Test({ switchRef, options, onRender, polyfill }: Props) {
-    const [ref, bounds] = useMeasure(options, polyfill ? Polyfill : undefined)
+    const [ref, bounds] = useMeasure({ ...options, polyfill: polyfill ? Polyfill : undefined })
     const [big, setBig] = React.useState(false)
 
     if (onRender) {

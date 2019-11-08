@@ -34,18 +34,16 @@ type State = {
 export type Options = {
   debounce?: number | { scroll: number; resize: number }
   scroll?: boolean
+  polyfill?: { new (cb: ResizeObserverCallback): ResizeObserver }
 }
 
-function useMeasure(
-  { debounce, scroll }: Options = { debounce: 0, scroll: false },
-  injectedResizeObserver?: { new (cb: ResizeObserverCallback): ResizeObserver }
-): Result {
+function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scroll: false }): Result {
   const ResizeObserver =
-    injectedResizeObserver || (typeof window === 'undefined' ? class ResizeObserver {} : (window as any).ResizeObserver)
+    polyfill || (typeof window === 'undefined' ? class ResizeObserver {} : (window as any).ResizeObserver)
 
   if (!ResizeObserver) {
     throw new Error(
-      'This browser does not support `ResizeObserver` out of the box. Please use a global polyfill, or provide a polyfill as a second argument to `useMeasure()`.'
+      'This browser does not support `ResizeObserver` out of the box. Please use a global polyfill, or provide a polyfill`.'
     )
   }
 

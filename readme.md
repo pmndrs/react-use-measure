@@ -4,7 +4,7 @@
 
     yarn add react-use-measure
 
-This small tool will measure the boundaries (for instance width, height, top, left) of a view you reference. It is reactive and responds to changes in size, window-scroll and nested-area-scroll. It uses a [resize-observer polyfill](https://github.com/juggle/resize-observer) on platforms that do not support resize observers.
+This small tool will measure the boundaries (for instance width, height, top, left) of a view you reference. It is reactive and responds to changes in size, window-scroll and nested-area-scroll.
 
 ### Why do we need this hook?
 
@@ -46,6 +46,8 @@ type Options = {
   debounce?: number | { scroll: number; resize: number }
   // React to nested scroll changes, don't use this if you know your view is static
   scroll?: boolean
+  // You can optionally inject a resize-observer polyfill
+  polyfill?: { new (cb: ResizeObserverCallback): ResizeObserver }
 }
 
 useMeasure(
@@ -54,5 +56,19 @@ useMeasure(
 ```
 
 # ⚠️ Notes
+
+### Resize-observer polyfills
+
+This lib relies on resize-observers. If you need a polyfill you can either polute the `window` object or inject it cleanly using the config options. We recommend [@juggle/resize-observer](https://github.com/juggle/resize-observer).
+
+```jsx
+import ResizeObserver from '@juggle/resize-observer'
+
+useMeasure({ polyfill: ResizeObserver })
+```
+
+We recommend [@juggle/resize-observer](https://github.com/juggle/resize-observer).
+
+### Multiple refs
 
 useMeasure currently returns its own ref. We do this because we are using functional refs for unmount tracking. If you need to have a ref of your own on the same element, use [react-merge-refs](https://github.com/smooth-code/react-merge-refs).
