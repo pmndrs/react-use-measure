@@ -43,7 +43,7 @@ function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scr
 
   if (!ResizeObserver) {
     throw new Error(
-      'This browser does not support `ResizeObserver` out of the box. Please use a global polyfill, or provide a polyfill`.'
+      'This browser does not support `ResizeObserver` out of the box. See: https://github.com/react-spring/react-use-measure/#resize-observer-polyfills`.'
     )
   }
 
