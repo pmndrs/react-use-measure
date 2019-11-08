@@ -62,9 +62,9 @@ useMeasure(
 This lib relies on resize-observers. If you need a polyfill you can either polute the `window` object or inject it cleanly using the config options. We recommend [@juggle/resize-observer](https://github.com/juggle/resize-observer).
 
 ```jsx
-import ResizeObserver from '@juggle/resize-observer'
+import polyfill from '@juggle/resize-observer'
 
-useMeasure({ polyfill: ResizeObserver })
+useMeasure({ polyfill })
 ```
 
 ### Multiple refs
