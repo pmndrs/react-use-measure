@@ -67,8 +67,6 @@ import ResizeObserver from '@juggle/resize-observer'
 useMeasure({ polyfill: ResizeObserver })
 ```
 
-We recommend [@juggle/resize-observer](https://github.com/juggle/resize-observer).
-
 ### Multiple refs
 
 useMeasure currently returns its own ref. We do this because we are using functional refs for unmount tracking. If you need to have a ref of your own on the same element, use [react-merge-refs](https://github.com/smooth-code/react-merge-refs).
