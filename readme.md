@@ -64,7 +64,8 @@ This lib relies on resize-observers. If you need a polyfill you can either polut
 ```jsx
 import polyfill from '@juggle/resize-observer'
 
-useMeasure({ polyfill })
+function App() {
+  const [ref, bounds] = useMeasure({ polyfill })
 ```
 
 ### Multiple refs
