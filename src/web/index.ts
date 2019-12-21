@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useMemo } from 'react'
+import {Dimensions } from "react-native"
 import { debounce as createDebounce } from 'debounce'
 
 declare type ResizeObserverCallback = (entries: any[], observer: ResizeObserver) => void
