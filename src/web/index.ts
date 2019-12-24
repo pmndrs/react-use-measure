@@ -1,5 +1,4 @@
 import { useEffect, useState, useRef, useMemo } from 'react'
-import {Dimensions } from "react-native"
 import { debounce as createDebounce } from 'debounce'
 
 declare type ResizeObserverCallback = (entries: any[], observer: ResizeObserver) => void
@@ -38,7 +37,7 @@ export type Options = {
   polyfill?: { new (cb: ResizeObserverCallback): ResizeObserver }
 }
 
-function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scroll: false }): Result {
+async function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scroll: false }): Result {
   const ResizeObserver =
     polyfill || (typeof window === 'undefined' ? class ResizeObserver {} : (window as any).ResizeObserver)
 
@@ -75,17 +74,28 @@ function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scr
   const [resizeChange, scrollChange] = useMemo(() => {
     const callback = () => {
       if (!state.current.element) return
-      const {
-        left,
-        top,
-        width,
-        height,
-        bottom,
-        right,
-        x,
-        y,
-      } = state.current.element.getBoundingClientRect() as RectReadOnly
-      const size = { left, top, width, height, bottom, right, x, y }
+
+      let size = {};
+      
+      // In react-native
+      if (typeof navigator != 'undefined' && navigator.product == 'ReactNative') {
+
+        const getSize = new Promise((resolve, reject) => {
+          state.current.element.measure( (x, y, width, height, px, py) => {
+            resolve(x, y, width, height)
+          })
+        })
+
+        const { width, height, x, y } = await getSize
+
+        size = { width, height, x, y }
+        
+      } else {
+        const { left, top, width, height, bottom, right, x, y } = state.current.element.getBoundingClientRect() as RectReadOnly
+        
+        size = { left, top, width, height, bottom, right, x, y }
+      }
+
       Object.freeze(size)
       if (!areBoundsEqual(state.current.lastBounds, size)) set((state.current.lastBounds = size))
     }
