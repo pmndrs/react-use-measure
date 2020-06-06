@@ -22,7 +22,7 @@ export interface RectReadOnly {
   [key: string]: number
 }
 
-type Result = [(element: HTMLElement | null) => void, RectReadOnly]
+type Result = [(element: HTMLElement | null) => void, RectReadOnly, () => void]
 
 type State = {
   element: HTMLElement | null
@@ -59,19 +59,14 @@ function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scr
   })
 
   // keep all state in a ref
-  const state = useRef<State>({
-    element: null,
-    scrollContainers: null,
-    resizeObserver: null,
-    lastBounds: bounds,
-  })
+  const state = useRef<State>({ element: null, scrollContainers: null, resizeObserver: null, lastBounds: bounds })
 
   // set actual debounce values early, so effects know if they should react accordingly
   const scrollDebounce = debounce ? (typeof debounce === 'number' ? debounce : debounce.scroll) : null
   const resizeDebounce = debounce ? (typeof debounce === 'number' ? debounce : debounce.resize) : null
 
   // memoize handlers, so event-listeners know when they should update
-  const [resizeChange, scrollChange] = useMemo(() => {
+  const [forceRefresh, resizeChange, scrollChange] = useMemo(() => {
     const callback = () => {
       if (!state.current.element) return
       const {
@@ -83,12 +78,13 @@ function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scr
         right,
         x,
         y,
-      } = state.current.element.getBoundingClientRect() as RectReadOnly
+      } = (state.current.element.getBoundingClientRect() as unknown) as RectReadOnly
       const size = { left, top, width, height, bottom, right, x, y }
       Object.freeze(size)
       if (!areBoundsEqual(state.current.lastBounds, size)) set((state.current.lastBounds = size))
     }
     return [
+      callback,
       resizeDebounce ? createDebounce(callback, resizeDebounce) : callback,
       scrollDebounce ? createDebounce(callback, scrollDebounce) : callback,
     ]
@@ -97,9 +93,7 @@ function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scr
   // cleanup current scroll-listeners / observers
   function removeListeners() {
     if (state.current.scrollContainers) {
-      state.current.scrollContainers.forEach(element => {
-        element.removeEventListener('scroll', scrollChange, true)
-      })
+      state.current.scrollContainers.forEach((element) => element.removeEventListener('scroll', scrollChange, true))
       state.current.scrollContainers = null
     }
 
@@ -111,29 +105,22 @@ function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scr
 
   // add scroll-listeners / observers
   function addListeners() {
-    if (!state.current.element) {
-      return
-    }
+    if (!state.current.element) return
     state.current.resizeObserver = new ResizeObserver(scrollChange)
     state.current.resizeObserver!.observe(state.current.element)
-
     if (scroll && state.current.scrollContainers) {
-      state.current.scrollContainers.forEach(scrollContainer => {
+      state.current.scrollContainers.forEach((scrollContainer) =>
         scrollContainer.addEventListener('scroll', scrollChange, { capture: true, passive: true })
-      })
+      )
     }
   }
 
   // the ref we expose to the user
   const ref = (node: HTMLElement | null) => {
-    if (!node || node === state.current.element) {
-      return
-    }
+    if (!node || node === state.current.element) return
     removeListeners()
-
     state.current.element = node
     state.current.scrollContainers = findScrollContainers(node)
-
     addListeners()
   }
 
@@ -148,11 +135,8 @@ function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scr
   }, [scroll, scrollChange, resizeChange])
 
   // remove all listeners when the components unmounts
-  useEffect(() => {
-    return removeListeners
-  }, [])
-
-  return [ref, bounds]
+  useEffect(() => removeListeners, [])
+  return [ref, bounds, forceRefresh]
 }
 
 // Adds native resize listener to window
@@ -160,9 +144,7 @@ function useOnWindowResize(onWindowResize: (event: Event) => void) {
   useEffect(() => {
     const cb = onWindowResize
     window.addEventListener('resize', cb)
-    return () => {
-      window.removeEventListener('resize', cb)
-    }
+    return () => void window.removeEventListener('resize', cb)
   }, [onWindowResize])
 }
 function useOnWindowScroll(onScroll: () => void, enabled: boolean) {
@@ -170,7 +152,7 @@ function useOnWindowScroll(onScroll: () => void, enabled: boolean) {
     if (enabled) {
       const cb = onScroll
       window.addEventListener('scroll', cb, { capture: true, passive: true })
-      return () => window.removeEventListener('scroll', cb, true)
+      return () => void window.removeEventListener('scroll', cb, true)
     }
   }, [onScroll, enabled])
 }
@@ -180,13 +162,13 @@ function findScrollContainers(element: HTMLElement | null): HTMLElement[] {
   const result: HTMLElement[] = []
   if (!element || element === document.body) return result
   const { overflow, overflowX, overflowY } = window.getComputedStyle(element)
-  if ([overflow, overflowX, overflowY].some(prop => prop === 'auto' || prop === 'scroll')) result.push(element)
+  if ([overflow, overflowX, overflowY].some((prop) => prop === 'auto' || prop === 'scroll')) result.push(element)
   return [...result, ...findScrollContainers(element.parentElement)]
 }
 
 // Checks if element boundaries are equal
 const keys: (keyof RectReadOnly)[] = ['x', 'y', 'top', 'bottom', 'left', 'right', 'width', 'height']
-const areBoundsEqual = (a: RectReadOnly, b: RectReadOnly): boolean => keys.every(key => a[key] === b[key])
+const areBoundsEqual = (a: RectReadOnly, b: RectReadOnly): boolean => keys.every((key) => a[key] === b[key])
 
 export default useMeasure
 
