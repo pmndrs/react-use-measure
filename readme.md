@@ -52,7 +52,7 @@ type Options = {
 
 useMeasure(
   options: Options = { debounce: 0, scroll: false }
-): [React.MutableRefObject<HTMLElement>, RectReadOnly]
+): [React.MutableRefObject<HTMLElement | SVGElement>, RectReadOnly]
 ```
 
 # ⚠️ Notes
