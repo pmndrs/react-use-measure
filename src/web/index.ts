@@ -22,11 +22,13 @@ export interface RectReadOnly {
   [key: string]: number
 }
 
-type Result = [(element: HTMLElement | null) => void, RectReadOnly, () => void]
+type HTMLOrSVGElement = HTMLElement | SVGElement
+
+type Result = [(element: HTMLOrSVGElement | null) => void, RectReadOnly, () => void]
 
 type State = {
-  element: HTMLElement | null
-  scrollContainers: HTMLElement[] | null
+  element: HTMLOrSVGElement | null
+  scrollContainers: HTMLOrSVGElement[] | null
   resizeObserver: ResizeObserver | null
   lastBounds: RectReadOnly
 }
@@ -116,7 +118,7 @@ function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scr
   }
 
   // the ref we expose to the user
-  const ref = (node: HTMLElement | null) => {
+  const ref = (node: HTMLOrSVGElement | null) => {
     if (!node || node === state.current.element) return
     removeListeners()
     state.current.element = node
@@ -158,8 +160,8 @@ function useOnWindowScroll(onScroll: () => void, enabled: boolean) {
 }
 
 // Returns a list of scroll offsets
-function findScrollContainers(element: HTMLElement | null): HTMLElement[] {
-  const result: HTMLElement[] = []
+function findScrollContainers(element: HTMLOrSVGElement | null): HTMLOrSVGElement[] {
+  const result: HTMLOrSVGElement[] = []
   if (!element || element === document.body) return result
   const { overflow, overflowX, overflowY } = window.getComputedStyle(element)
   if ([overflow, overflowX, overflowY].some((prop) => prop === 'auto' || prop === 'scroll')) result.push(element)
