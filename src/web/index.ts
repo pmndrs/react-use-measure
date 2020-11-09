@@ -76,7 +76,7 @@ function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scr
 
   // memoize handlers, so event-listeners know when they should update
   const [forceRefresh, resizeChange, scrollChange] = useMemo(() => {
-    const callback = (unmount: boolean) => {
+    const callback = () => {
       if (!state.current.element) return
       const {
         left,
