@@ -67,9 +67,16 @@ function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scr
   const scrollDebounce = debounce ? (typeof debounce === 'number' ? debounce : debounce.scroll) : null
   const resizeDebounce = debounce ? (typeof debounce === 'number' ? debounce : debounce.resize) : null
 
+  // make sure to update state only as long as the component is truly mounted
+  const mounted = useRef(false)
+  useEffect(() => {
+    mounted.current = true
+    return () => void (mounted.current = false)
+  })
+
   // memoize handlers, so event-listeners know when they should update
   const [forceRefresh, resizeChange, scrollChange] = useMemo(() => {
-    const callback = () => {
+    const callback = (unmount: boolean) => {
       if (!state.current.element) return
       const {
         left,
@@ -83,7 +90,7 @@ function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scr
       } = (state.current.element.getBoundingClientRect() as unknown) as RectReadOnly
       const size = { left, top, width, height, bottom, right, x, y }
       Object.freeze(size)
-      if (!areBoundsEqual(state.current.lastBounds, size)) set((state.current.lastBounds = size))
+      if (mounted.current && !areBoundsEqual(state.current.lastBounds, size)) set((state.current.lastBounds = size))
     }
     return [
       callback,
