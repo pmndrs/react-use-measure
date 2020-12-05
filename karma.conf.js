@@ -20,6 +20,10 @@ module.exports = function(config) {
     webpack: {
       mode: 'development',
       devtool: 'inline-source-map',
+      node: {
+        fs: 'empty',
+        module: 'empty',
+      },
       module: {
         rules: [
           {

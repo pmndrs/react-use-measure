@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo } from 'react'
+import {useEffect, useState, useRef, useMemo, useCallback, MutableRefObject} from 'react'
 import { debounce as createDebounce } from 'debounce'
 
 declare type ResizeObserverCallback = (entries: any[], observer: ResizeObserver) => void
@@ -99,39 +99,14 @@ function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scr
     ]
   }, [set, scrollDebounce, resizeDebounce])
 
-  // cleanup current scroll-listeners / observers
-  function removeListeners() {
-    if (state.current.scrollContainers) {
-      state.current.scrollContainers.forEach((element) => element.removeEventListener('scroll', scrollChange, true))
-      state.current.scrollContainers = null
-    }
-
-    if (state.current.resizeObserver) {
-      state.current.resizeObserver.disconnect()
-      state.current.resizeObserver = null
-    }
-  }
-
-  // add scroll-listeners / observers
-  function addListeners() {
-    if (!state.current.element) return
-    state.current.resizeObserver = new ResizeObserver(scrollChange)
-    state.current.resizeObserver!.observe(state.current.element)
-    if (scroll && state.current.scrollContainers) {
-      state.current.scrollContainers.forEach((scrollContainer) =>
-        scrollContainer.addEventListener('scroll', scrollChange, { capture: true, passive: true })
-      )
-    }
-  }
-
   // the ref we expose to the user
-  const ref = (node: HTMLOrSVGElement | null) => {
+  const ref = useCallback((node: HTMLOrSVGElement | null) => {
     if (!node || node === state.current.element) return
-    removeListeners()
+    removeListeners(state, scrollChange)
     state.current.element = node
     state.current.scrollContainers = findScrollContainers(node)
-    addListeners()
-  }
+    addListeners(state, scrollChange, scroll)
+  }, [scroll, scrollChange])
 
   // add general event listeners
   useOnWindowScroll(scrollChange, Boolean(scroll))
@@ -139,12 +114,12 @@ function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scr
 
   // respond to changes that are relevant for the listeners
   useEffect(() => {
-    removeListeners()
-    addListeners()
+    removeListeners(state, scrollChange)
+    addListeners(state, scrollChange, scroll)
   }, [scroll, scrollChange, resizeChange])
 
   // remove all listeners when the components unmounts
-  useEffect(() => removeListeners, [])
+  useEffect(() => () => removeListeners(state, scrollChange), [])
   return [ref, bounds, forceRefresh]
 }
 
@@ -173,6 +148,31 @@ function findScrollContainers(element: HTMLOrSVGElement | null): HTMLOrSVGElemen
   const { overflow, overflowX, overflowY } = window.getComputedStyle(element)
   if ([overflow, overflowX, overflowY].some((prop) => prop === 'auto' || prop === 'scroll')) result.push(element)
   return [...result, ...findScrollContainers(element.parentElement)]
+}
+
+// cleanup current scroll-listeners / observers
+function removeListeners(state: MutableRefObject<State>, scrollChange: () => void) {
+  if (state.current.scrollContainers) {
+    state.current.scrollContainers.forEach((element) => element.removeEventListener('scroll', scrollChange, true))
+    state.current.scrollContainers = null
+  }
+
+  if (state.current.resizeObserver) {
+    state.current.resizeObserver.disconnect()
+    state.current.resizeObserver = null
+  }
+}
+
+// add scroll-listeners / observers
+function addListeners(state: MutableRefObject<State>, scrollChange: () => void, scroll?: boolean) {
+  if (!state.current.element) return
+  state.current.resizeObserver = new ResizeObserver(scrollChange)
+  state.current.resizeObserver!.observe(state.current.element)
+  if (scroll && state.current.scrollContainers) {
+    state.current.scrollContainers.forEach((scrollContainer) =>
+        scrollContainer.addEventListener('scroll', scrollChange, { capture: true, passive: true })
+    )
+  }
 }
 
 // Checks if element boundaries are equal

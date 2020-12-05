@@ -2,6 +2,7 @@ import * as React from 'react'
 import styled, { createGlobalStyle } from 'styled-components'
 import expect from 'expect'
 import { render, cleanup, RenderResult, fireEvent } from '@testing-library/react'
+import {renderHook} from '@testing-library/react-hooks';
 import Polyfill from 'resize-observer-polyfill'
 
 import useMeasure, { Options } from '.'
@@ -210,4 +211,22 @@ describe('useMeasure', () => {
     })
     ;(window as any).ResizeObserver = RO
   })
+
+  it('memoize ref function', () => {
+    const { result, rerender } = renderHook(() => useMeasure())
+    const ref = result.current[0];
+    rerender()
+    expect(ref).toBe(result.current[0]);
+  });
+
+  it('create new ref function when prop changed', () => {
+    const { result, rerender } = renderHook(({ scroll }) => useMeasure({ scroll}), {
+      initialProps: {
+        scroll: false
+      }
+    })
+    const ref = result.current[0];
+    rerender({ scroll: true })
+    expect(ref).not.toBe(result.current[0]);
+  });
 })
