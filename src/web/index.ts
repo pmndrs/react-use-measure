@@ -1,4 +1,4 @@
-import {useEffect, useState, useRef, useMemo, useCallback, MutableRefObject} from 'react'
+import { useEffect, useState, useRef, useMemo, useCallback, MutableRefObject } from 'react'
 import { debounce as createDebounce } from 'debounce'
 
 declare type ResizeObserverCallback = (entries: any[], observer: ResizeObserver) => void
@@ -100,13 +100,16 @@ function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scr
   }, [set, scrollDebounce, resizeDebounce])
 
   // the ref we expose to the user
-  const ref = useCallback((node: HTMLOrSVGElement | null) => {
-    if (!node || node === state.current.element) return
-    removeListeners(state, scrollChange)
-    state.current.element = node
-    state.current.scrollContainers = findScrollContainers(node)
-    addListeners(state, scrollChange, scroll)
-  }, [scroll, scrollChange])
+  const ref = useCallback(
+    (node: HTMLOrSVGElement | null) => {
+      if (!node || node === state.current.element) return
+      removeListeners(state, scrollChange)
+      state.current.element = node
+      state.current.scrollContainers = findScrollContainers(node)
+      addListeners(state, scrollChange, scroll)
+    },
+    [scroll, scrollChange]
+  )
 
   // add general event listeners
   useOnWindowScroll(scrollChange, Boolean(scroll))
@@ -170,7 +173,7 @@ function addListeners(state: MutableRefObject<State>, scrollChange: () => void, 
   state.current.resizeObserver!.observe(state.current.element)
   if (scroll && state.current.scrollContainers) {
     state.current.scrollContainers.forEach((scrollContainer) =>
-        scrollContainer.addEventListener('scroll', scrollChange, { capture: true, passive: true })
+      scrollContainer.addEventListener('scroll', scrollChange, { capture: true, passive: true })
     )
   }
 }

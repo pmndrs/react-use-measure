@@ -2,7 +2,7 @@ import * as React from 'react'
 import styled, { createGlobalStyle } from 'styled-components'
 import expect from 'expect'
 import { render, cleanup, RenderResult, fireEvent } from '@testing-library/react'
-import {renderHook} from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react-hooks'
 import Polyfill from 'resize-observer-polyfill'
 
 import useMeasure, { Options } from '.'
@@ -28,8 +28,8 @@ const Wrapper = styled.div`
 `
 
 const Box = styled.div<{ big: boolean }>`
-  width: ${p => (p.big ? 400 : 200)}px;
-  height: ${p => (p.big ? 400 : 200)}px;
+  width: ${(p) => (p.big ? 400 : 200)}px;
+  height: ${(p) => (p.big ? 400 : 200)}px;
   overflow: hidden;
   font-size: 8px;
 `
@@ -39,8 +39,8 @@ const Box = styled.div<{ big: boolean }>`
  */
 
 const getBounds = (tools: RenderResult): ClientRect => JSON.parse(tools.getByTestId('box').innerHTML)
-const nextFrame = () => new Promise(resolve => setTimeout(resolve, 1000 / 60))
-const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+const nextFrame = () => new Promise((resolve) => setTimeout(resolve, 1000 / 60))
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 function ignoreWindowErrors(test: () => void) {
   const onErrorBackup = window.onerror
@@ -214,19 +214,19 @@ describe('useMeasure', () => {
 
   it('memoize ref function', () => {
     const { result, rerender } = renderHook(() => useMeasure())
-    const ref = result.current[0];
+    const ref = result.current[0]
     rerender()
-    expect(ref).toBe(result.current[0]);
-  });
+    expect(ref).toBe(result.current[0])
+  })
 
   it('create new ref function when prop changed', () => {
-    const { result, rerender } = renderHook(({ scroll }) => useMeasure({ scroll}), {
+    const { result, rerender } = renderHook(({ scroll }) => useMeasure({ scroll }), {
       initialProps: {
-        scroll: false
-      }
+        scroll: false,
+      },
     })
-    const ref = result.current[0];
+    const ref = result.current[0]
     rerender({ scroll: true })
-    expect(ref).not.toBe(result.current[0]);
-  });
+    expect(ref).not.toBe(result.current[0])
+  })
 })
