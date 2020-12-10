@@ -48,6 +48,8 @@ type Options = {
   scroll?: boolean
   // You can optionally inject a resize-observer polyfill
   polyfill?: { new (cb: ResizeObserverCallback): ResizeObserver }
+  // You can optionally provide a custom comparator to ignore certain updates to the RectReadOnly
+  areBoundsEqual?: (a: RectReadOnly, b: RectReadOnly) => boolean
 }
 
 useMeasure(
