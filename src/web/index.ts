@@ -37,9 +37,10 @@ export type Options = {
   debounce?: number | { scroll: number; resize: number }
   scroll?: boolean
   polyfill?: { new (cb: ResizeObserverCallback): ResizeObserver }
+  areBoundsEqual?: (a: RectReadOnly, b: RectReadOnly) => boolean
 }
 
-function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scroll: false }): Result {
+function useMeasure({ debounce, scroll, polyfill, areBoundsEqual }: Options = { debounce: 0, scroll: false }): Result {
   const ResizeObserver =
     polyfill || (typeof window === 'undefined' ? class ResizeObserver {} : (window as any).ResizeObserver)
 
@@ -67,6 +68,9 @@ function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scr
   const scrollDebounce = debounce ? (typeof debounce === 'number' ? debounce : debounce.scroll) : null
   const resizeDebounce = debounce ? (typeof debounce === 'number' ? debounce : debounce.resize) : null
 
+  // find the comparator to use
+  const areBoundsEqualWithDefault = areBoundsEqual ? areBoundsEqual : areBoundsEqualDefault
+
   // make sure to update state only as long as the component is truly mounted
   const mounted = useRef(false)
   useEffect(() => {
@@ -90,7 +94,9 @@ function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scr
       } = (state.current.element.getBoundingClientRect() as unknown) as RectReadOnly
       const size = { left, top, width, height, bottom, right, x, y }
       Object.freeze(size)
-      if (mounted.current && !areBoundsEqual(state.current.lastBounds, size)) set((state.current.lastBounds = size))
+      if (mounted.current && !areBoundsEqualWithDefault(state.current.lastBounds, size)) {
+        set((state.current.lastBounds = size))
+      }
     }
     return [
       callback,
@@ -177,7 +183,7 @@ function findScrollContainers(element: HTMLOrSVGElement | null): HTMLOrSVGElemen
 
 // Checks if element boundaries are equal
 const keys: (keyof RectReadOnly)[] = ['x', 'y', 'top', 'bottom', 'left', 'right', 'width', 'height']
-const areBoundsEqual = (a: RectReadOnly, b: RectReadOnly): boolean => keys.every((key) => a[key] === b[key])
+const areBoundsEqualDefault = (a: RectReadOnly, b: RectReadOnly): boolean => keys.every((key) => a[key] === b[key])
 
 export default useMeasure
 
