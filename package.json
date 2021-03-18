@@ -1,6 +1,6 @@
 {
   "name": "react-use-measure",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "measure view bounds",
   "main": "./dist/web.cjs.js",
   "module": "./dist/web.js",
