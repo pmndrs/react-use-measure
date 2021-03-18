@@ -180,11 +180,3 @@ const keys: (keyof RectReadOnly)[] = ['x', 'y', 'top', 'bottom', 'left', 'right'
 const areBoundsEqual = (a: RectReadOnly, b: RectReadOnly): boolean => keys.every((key) => a[key] === b[key])
 
 export default useMeasure
-
-if (
-  typeof module !== 'undefined' &&
-  Object.getOwnPropertyDescriptor &&
-  Object.getOwnPropertyDescriptor(module, 'exports')!.writable
-) {
-  module.exports = useMeasure
-}
