@@ -1,6 +1,6 @@
 process.env.CHROME_BIN = require('puppeteer').executablePath()
 
-module.exports = function(config) {
+module.exports = function (config) {
   config.set({
     frameworks: ['mocha'],
 
@@ -20,6 +20,10 @@ module.exports = function(config) {
     webpack: {
       mode: 'development',
       devtool: 'inline-source-map',
+      node: {
+        fs: 'empty',
+        module: 'empty',
+      },
       module: {
         rules: [
           {
