@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useMemo } from 'react'
 import { debounce as createDebounce } from 'debounce'
+import { raf } from 'rafz'
 
 declare type ResizeObserverCallback = (entries: any[], observer: ResizeObserver) => void
 declare class ResizeObserver {
@@ -76,6 +77,10 @@ function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scr
 
   // memoize handlers, so event-listeners know when they should update
   const [forceRefresh, resizeChange, scrollChange] = useMemo(() => {
+    const setState = () => {
+      set(state.current.lastBounds)
+    }
+
     const callback = () => {
       if (!state.current.element) return
       const {
@@ -90,8 +95,13 @@ function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scr
       } = (state.current.element.getBoundingClientRect() as unknown) as RectReadOnly
       const size = { left, top, width, height, bottom, right, x, y }
       Object.freeze(size)
-      if (mounted.current && !areBoundsEqual(state.current.lastBounds, size)) set((state.current.lastBounds = size))
+
+      if (mounted.current && !areBoundsEqual(state.current.lastBounds, size)) {
+        state.current.lastBounds = size
+        raf.write(setState)
+      }
     }
+
     return [
       callback,
       resizeDebounce ? createDebounce(callback, resizeDebounce) : callback,

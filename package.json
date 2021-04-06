@@ -104,6 +104,7 @@
     "webpack": "^4.43.0"
   },
   "dependencies": {
-    "debounce": "^1.2.0"
+    "debounce": "^1.2.0",
+    "rafz": "^0.1.14"
   }
 }
