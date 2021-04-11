@@ -37,9 +37,12 @@ export type Options = {
   debounce?: number | { scroll: number; resize: number }
   scroll?: boolean
   polyfill?: { new (cb: ResizeObserverCallback): ResizeObserver }
+  dependencies?: unknown[]
 }
 
-function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scroll: false }): Result {
+function useMeasure(
+  { debounce, scroll, polyfill, dependencies = [] }: Options = { debounce: 0, scroll: false }
+): Result {
   const ResizeObserver =
     polyfill || (typeof window === 'undefined' ? class ResizeObserver {} : (window as any).ResizeObserver)
 
@@ -142,7 +145,9 @@ function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scr
     removeListeners()
     addListeners()
   }, [scroll, scrollChange, resizeChange])
-
+  useEffect(() => {
+    forceRefresh()
+  }, dependencies.concat([forceRefresh]))
   // remove all listeners when the components unmounts
   useEffect(() => removeListeners, [])
   return [ref, bounds, forceRefresh]
