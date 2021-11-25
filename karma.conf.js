@@ -52,7 +52,6 @@ module.exports = function (config) {
           fs: false,
           module: false,
           match: false,
-          process: 'process/browser',
         },
       },
     },
