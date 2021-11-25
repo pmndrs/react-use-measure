@@ -36,10 +36,10 @@ const Global = createGlobalStyle<{ color: string }>`
 `
 
 export const Container = styled.div<{ scale: number }>`
-transform: scale(${(props) => props.scale});
-display:flex;
-flex-direction: column;
-justify-content; center;
+  transform: scale(${(props) => props.scale});
+  display:flex;
+  flex-direction: column;
+  justify-content; center;
 `
 
 export const Button = styled.button`
