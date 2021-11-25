@@ -5,7 +5,7 @@ import json from 'rollup-plugin-json'
 import { sizeSnapshot } from 'rollup-plugin-size-snapshot'
 
 const root = process.platform === 'win32' ? path.resolve('/') : '/'
-const external = id => !id.startsWith('.') && !id.startsWith(root)
+const external = (id) => !id.startsWith('.') && !id.startsWith(root)
 const extensions = ['.js', '.jsx', '.ts', '.tsx', '.json']
 
 const getBabelOptions = ({ useESModules }, targets) => ({
@@ -39,7 +39,7 @@ function createConfig(entry, out) {
     },
     {
       input: `./src/${entry}/index`,
-      output: { file: `dist/${out}.cjs.js`, format: 'cjs' },
+      output: { file: `dist/${out}.cjs.js`, format: 'cjs', exports: 'default' },
       external,
       plugins: [json(), babel(getBabelOptions({ useESModules: false })), sizeSnapshot(), resolve({ extensions })],
     },
