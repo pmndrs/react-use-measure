@@ -37,9 +37,12 @@ export type Options = {
   debounce?: number | { scroll: number; resize: number }
   scroll?: boolean
   polyfill?: { new (cb: ResizeObserverCallback): ResizeObserver }
+  offsetSize?: boolean
 }
 
-function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scroll: false }): Result {
+function useMeasure(
+  { debounce, scroll, polyfill, offsetSize }: Options = { debounce: 0, scroll: false, offsetSize: false }
+): Result {
   const ResizeObserver =
     polyfill || (typeof window === 'undefined' ? class ResizeObserver {} : (window as any).ResizeObserver)
 
@@ -88,7 +91,23 @@ function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scr
         x,
         y,
       } = (state.current.element.getBoundingClientRect() as unknown) as RectReadOnly
-      const size = { left, top, width, height, bottom, right, x, y }
+
+      const size = {
+        left,
+        top,
+        width,
+        height,
+        bottom,
+        right,
+        x,
+        y,
+      }
+
+      if (state.current.element instanceof HTMLElement && offsetSize) {
+        size.height = state.current.element.offsetHeight
+        size.width = state.current.element.offsetWidth
+      }
+
       Object.freeze(size)
       if (mounted.current && !areBoundsEqual(state.current.lastBounds, size)) set((state.current.lastBounds = size))
     }
@@ -97,7 +116,7 @@ function useMeasure({ debounce, scroll, polyfill }: Options = { debounce: 0, scr
       resizeDebounce ? createDebounce(callback, resizeDebounce) : callback,
       scrollDebounce ? createDebounce(callback, scrollDebounce) : callback,
     ]
-  }, [set, scrollDebounce, resizeDebounce])
+  }, [set, offsetSize, scrollDebounce, resizeDebounce])
 
   // cleanup current scroll-listeners / observers
   function removeListeners() {
