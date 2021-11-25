@@ -20,15 +20,16 @@ const GlobalStyle = createGlobalStyle`
     }
 `
 
-const Wrapper = styled.div`
+const Wrapper = styled.div<{ scale: number }>`
+  transform: scale(${(props) => props.scale});
   width: 500px;
   height: 500px;
   overflow: auto;
 `
 
 const Box = styled.div<{ big: boolean }>`
-  width: ${p => (p.big ? 400 : 200)}px;
-  height: ${p => (p.big ? 400 : 200)}px;
+  width: ${(p) => (p.big ? 400 : 200)}px;
+  height: ${(p) => (p.big ? 400 : 200)}px;
   overflow: hidden;
   font-size: 8px;
 `
@@ -38,8 +39,8 @@ const Box = styled.div<{ big: boolean }>`
  */
 
 const getBounds = (tools: RenderResult): ClientRect => JSON.parse(tools.getByTestId('box').innerHTML)
-const nextFrame = () => new Promise(resolve => setTimeout(resolve, 1000 / 60))
-const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+const nextFrame = () => new Promise((resolve) => setTimeout(resolve, 1000 / 60))
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 function ignoreWindowErrors(test: () => void) {
   const onErrorBackup = window.onerror
@@ -65,13 +66,15 @@ afterEach(() => {
 describe('useMeasure', () => {
   type Props = {
     switchRef?: boolean
+    scale?: number
     onRender?: () => void
     options?: Options
     polyfill?: boolean
+    offsetSize?: boolean
   }
 
-  function Test({ switchRef, options, onRender, polyfill }: Props) {
-    const [ref, bounds] = useMeasure({ ...options, polyfill: polyfill ? Polyfill : undefined })
+  function Test({ switchRef, options, onRender, polyfill, scale = 1, offsetSize = false }: Props) {
+    const [ref, bounds] = useMeasure({ ...options, polyfill: polyfill ? Polyfill : undefined, offsetSize })
     const [big, setBig] = React.useState(false)
 
     if (onRender) {
@@ -81,7 +84,7 @@ describe('useMeasure', () => {
     return (
       <>
         <GlobalStyle />
-        <Wrapper data-testid="wrapper">
+        <Wrapper scale={scale} data-testid="wrapper">
           <Box ref={!switchRef ? ref : undefined} data-testid="box" big={big} onClick={() => setBig(!big)}>
             {JSON.stringify(bounds)}
           </Box>
@@ -154,6 +157,24 @@ describe('useMeasure', () => {
 
     expect(getBounds(tools).top).toBe(-200)
     expect(getBounds(tools).left).toBe(0)
+  })
+
+  it('gives correct size when offsetSize: true and parent is scaled', async () => {
+    const tools = render(<Test offsetSize scale={0.8} />)
+
+    await nextFrame()
+
+    expect(getBounds(tools).width).toBe(200)
+    expect(getBounds(tools).height).toBe(200)
+  })
+
+  it('gives correct size when offsetSize: false and parent is scaled', async () => {
+    const tools = render(<Test scale={0.8} />)
+
+    await nextFrame()
+
+    expect(getBounds(tools).width).toBe(200 * 0.8)
+    expect(getBounds(tools).height).toBe(200 * 0.8)
   })
 
   it('debounces the scroll events', async () => {
