@@ -31,14 +31,39 @@ const Global = createGlobalStyle<{ color: string }>`
     overscroll-behavior-y: none;
     font-family: -apple-system, BlinkMacSystemFont, avenir next, avenir, helvetica neue, helvetica, ubuntu, roboto, noto, segoe ui, arial, sans-serif;
     color: black;
-    background: ${props => props.color};
+    background: ${(props) => props.color};
+  }
+`
+
+export const Container = styled.div<{ scale: number }>`
+  transform: scale(${(props) => props.scale});
+  display:flex;
+  flex-direction: column;
+  justify-content; center;
+`
+
+export const Button = styled.button`
+  background-color: ${(props) => props.color};
+  border-radius: 7px;
+  margin: 20px auto;
+  border: none;
+  background-color: #272730;
+  color: white;
+  padding: 10px 15px;
+
+  &:hover {
+    background-color: #676770;
+  }
+
+  span {
+    font-weight: bold;
   }
 `
 
 const Box = styled.div<{ size: number; color: string }>`
-  width: ${props => props.size}px;
-  height: ${props => props.size}px;
-  background-color: ${props => props.color};
+  width: ${(props) => props.size}px;
+  height: ${(props) => props.size}px;
+  background-color: ${(props) => props.color};
   transition: 0.5s;
   cursor: pointer;
   border-radius: 7px;
@@ -51,9 +76,9 @@ const Box = styled.div<{ size: number; color: string }>`
 `
 
 const ScrollArea = styled.div<{ size: number | string; color: string }>`
-  width: ${props => props.size};
-  height: ${props => props.size};
-  background-color: ${props => props.color};
+  width: ${(props) => props.size};
+  height: ${(props) => props.size};
+  background-color: ${(props) => props.color};
   overflow: auto;
   margin-left: auto;
   margin-right: auto;

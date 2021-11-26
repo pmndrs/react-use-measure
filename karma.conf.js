@@ -1,10 +1,11 @@
 process.env.CHROME_BIN = require('puppeteer').executablePath()
 
-module.exports = function(config) {
+module.exports = function (config) {
   config.set({
-    frameworks: ['mocha'],
+    frameworks: ['mocha', 'webpack'],
 
     files: [
+      'src/web/test-globals.js',
       {
         pattern: 'src/**/*.spec.tsx',
         watched: false,
@@ -44,9 +45,16 @@ module.exports = function(config) {
       },
       resolve: {
         extensions: ['.ts', '.tsx', '.js', '.jsx'],
+        fallback: {
+          path: require.resolve('path-browserify'),
+          stream: require.resolve('stream-browserify'),
+          constants: require.resolve('constants-browserify'),
+          fs: false,
+          module: false,
+          match: false,
+        },
       },
     },
-
     browsers: ['ChromeHeadless'],
   })
 }

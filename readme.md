@@ -48,6 +48,8 @@ type Options = {
   scroll?: boolean
   // You can optionally inject a resize-observer polyfill
   polyfill?: { new (cb: ResizeObserverCallback): ResizeObserver }
+  // Measure size using offsetHeight and offsetWidth to ignore parent scale transforms
+  offsetSize?: boolean
 }
 
 useMeasure(
