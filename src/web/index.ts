@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo } from 'react'
-import { debounce as createDebounce } from 'debounce'
+import createDebounce from 'debounce'
 
 declare type ResizeObserverCallback = (entries: any[], observer: ResizeObserver) => void
 declare class ResizeObserver {
