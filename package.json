@@ -6,6 +6,8 @@
   "module": "./dist/web.js",
   "types": "./types/index.d.ts",
   "sideEffects": false,
+  "website": "https://github.com/pmndrs/react-use-measure",
+  "repository": "https://github.com/pmndrs/react-use-measure",
   "scripts": {
     "prebuild": "rimraf dist && npm run typegen",
     "build": "rollup -c",
