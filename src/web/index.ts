@@ -150,6 +150,7 @@ function useMeasure(
     state.current.element = node
     state.current.scrollContainers = findScrollContainers(node)
     addListeners()
+    forceRefresh()
   }
 
   // add general event listeners
