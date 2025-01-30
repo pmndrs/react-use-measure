@@ -21,6 +21,10 @@
       "pre-commit": "pretty-quick"
     }
   },
+  "repository": {	
+    "type": "git",
+    "url": "https://github.com/pmndrs/react-use-measure.git"
+  },
   "prettier": {
     "semi": false,
     "trailingComma": "es5",
