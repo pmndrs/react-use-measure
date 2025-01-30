@@ -1,14 +1,11 @@
 import { useEffect, useState, useRef, useMemo } from 'react'
 
-function createDebounce<T extends (...args: any[]) => void>(callback: T, ms: number): (...args: Parameters<T>) => void {
+function createDebounce<T extends (...args: any[]) => void>(callback: T, ms: number) {
   let timeoutId: number
 
-  return (...args: Parameters<T>) => {
+  return (...args: Parameters<T>): void => {
     window.clearTimeout(timeoutId)
-
-    timeoutId = window.setTimeout(() => {
-      callback(...args)
-    }, ms)
+    timeoutId = window.setTimeout(() => callback(...args), ms)
   }
 }
 
