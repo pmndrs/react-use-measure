@@ -1,5 +1,13 @@
 import { useEffect, useState, useRef, useMemo } from 'react'
-import createDebounce from 'debounce'
+
+function createDebounce<T extends (...args: any[]) => void>(callback: T, ms: number) {
+  let timeoutId: number
+
+  return (...args: Parameters<T>): void => {
+    window.clearTimeout(timeoutId)
+    timeoutId = window.setTimeout(() => callback(...args), ms)
+  }
+}
 
 declare type ResizeObserverCallback = (entries: any[], observer: ResizeObserver) => void
 declare class ResizeObserver {
@@ -41,14 +49,14 @@ export type Options = {
 }
 
 function useMeasure(
-  { debounce, scroll, polyfill, offsetSize }: Options = { debounce: 0, scroll: false, offsetSize: false }
+  { debounce, scroll, polyfill, offsetSize }: Options = { debounce: 0, scroll: false, offsetSize: false },
 ): Result {
   const ResizeObserver =
     polyfill || (typeof window === 'undefined' ? class ResizeObserver {} : (window as any).ResizeObserver)
 
   if (!ResizeObserver) {
     throw new Error(
-      'This browser does not support ResizeObserver out of the box. See: https://github.com/react-spring/react-use-measure/#resize-observer-polyfills'
+      'This browser does not support ResizeObserver out of the box. See: https://github.com/react-spring/react-use-measure/#resize-observer-polyfills',
     )
   }
 
@@ -81,16 +89,8 @@ function useMeasure(
   const [forceRefresh, resizeChange, scrollChange] = useMemo(() => {
     const callback = () => {
       if (!state.current.element) return
-      const {
-        left,
-        top,
-        width,
-        height,
-        bottom,
-        right,
-        x,
-        y,
-      } = (state.current.element.getBoundingClientRect() as unknown) as RectReadOnly
+      const { left, top, width, height, bottom, right, x, y } =
+        state.current.element.getBoundingClientRect() as unknown as RectReadOnly
 
       const size = {
         left,
@@ -138,7 +138,7 @@ function useMeasure(
     state.current.resizeObserver!.observe(state.current.element)
     if (scroll && state.current.scrollContainers) {
       state.current.scrollContainers.forEach((scrollContainer) =>
-        scrollContainer.addEventListener('scroll', scrollChange, { capture: true, passive: true })
+        scrollContainer.addEventListener('scroll', scrollChange, { capture: true, passive: true }),
       )
     }
   }
