@@ -34,16 +34,6 @@ export default vite.defineConfig({
   },
   plugins: [
     {
-      name: 'vite-tsc',
-      generateBundle() {
-        this.emitFile({
-          type: 'asset',
-          fileName: 'index.d.ts',
-          source: `import useMeasure from '../src/index.ts';export * from '../src/index.ts';export default useMeasure;`,
-        })
-      },
-    },
-    {
       name: 'vite-minify',
       renderChunk: {
         order: 'post',

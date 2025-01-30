@@ -3,7 +3,7 @@ import { render, cleanup, RenderResult, fireEvent } from '@testing-library/react
 import Polyfill from 'resize-observer-polyfill'
 import { afterEach, describe, it, expect } from 'vitest'
 
-import useMeasure, { Options } from 'use-measure'
+import useMeasure, { Options } from '../src/index'
 
 /**
  * Helpers
