@@ -52,6 +52,7 @@
     "react-dom": ">=16.13"
   },
   "scripts": {
+    "postinstall": "npx playwright install",
     "dev": "vite",
     "build": "vite build",
     "lint": "tsc",
