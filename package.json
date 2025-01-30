@@ -58,9 +58,8 @@
     }
   },
   "scripts": {
-    "postinstall": "npx playwright install",
     "dev": "vite",
     "build": "rimraf dist && vite build && tsc",
-    "test": "vitest run"
+    "test": "npx playwright install && vitest run"
   }
 }
