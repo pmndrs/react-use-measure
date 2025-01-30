@@ -37,7 +37,11 @@ export default vite.defineConfig({
       name: 'vite-tsc',
       generateBundle(options) {
         const ext = options.format === 'cjs' ? 'cts' : 'ts'
-        this.emitFile({ type: 'asset', fileName: `index.d.${ext}`, source: `export * from '../src/index.ts'` })
+        this.emitFile({
+          type: 'asset',
+          fileName: `index.d.${ext}`,
+          source: `import useMeasure from '../src/index.ts';export * from '../src/index.ts';export = useMeasure;`,
+        })
       },
     },
     {
