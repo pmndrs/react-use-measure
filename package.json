@@ -1,6 +1,6 @@
 {
   "name": "react-use-measure",
-  "version": "2.1.6",
+  "version": "2.1.7",
   "description": "Utility to measure view bounds",
   "keywords": [
     "react",
