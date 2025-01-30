@@ -6,6 +6,8 @@
   "module": "./dist/web.js",
   "types": "./types/index.d.ts",
   "sideEffects": false,
+  "website": "https://github.com/pmndrs/react-use-measure",
+  "repository": "https://github.com/pmndrs/react-use-measure",
   "scripts": {
     "prebuild": "rimraf dist && npm run typegen",
     "build": "rollup -c",
@@ -20,10 +22,6 @@
     "hooks": {
       "pre-commit": "pretty-quick"
     }
-  },
-  "repository": {	
-    "type": "git",
-    "url": "https://github.com/pmndrs/react-use-measure.git"
   },
   "prettier": {
     "semi": false,
