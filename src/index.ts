@@ -39,6 +39,7 @@ type State = {
   scrollContainers: HTMLOrSVGElement[] | null
   resizeObserver: ResizeObserver | null
   lastBounds: RectReadOnly
+  orientationHandler: null | (() => void)
 }
 
 export type Options = {
@@ -72,7 +73,13 @@ function useMeasure(
   })
 
   // keep all state in a ref
-  const state = useRef<State>({ element: null, scrollContainers: null, resizeObserver: null, lastBounds: bounds })
+  const state = useRef<State>({
+    element: null,
+    scrollContainers: null,
+    resizeObserver: null,
+    lastBounds: bounds,
+    orientationHandler: null,
+  })
 
   // set actual debounce values early, so effects know if they should react accordingly
   const scrollDebounce = debounce ? (typeof debounce === 'number' ? debounce : debounce.scroll) : null
@@ -129,6 +136,14 @@ function useMeasure(
       state.current.resizeObserver.disconnect()
       state.current.resizeObserver = null
     }
+
+    if (state.current.orientationHandler) {
+      if ('orientation' in screen && 'removeEventListener' in screen.orientation) {
+        screen.orientation.removeEventListener('change', state.current.orientationHandler)
+      } else if ('onorientationchange' in window) {
+        window.removeEventListener('orientationchange', state.current.orientationHandler)
+      }
+    }
   }
 
   // add scroll-listeners / observers
@@ -140,6 +155,19 @@ function useMeasure(
       state.current.scrollContainers.forEach((scrollContainer) =>
         scrollContainer.addEventListener('scroll', scrollChange, { capture: true, passive: true }),
       )
+    }
+
+    // Handle orientation changes
+    state.current.orientationHandler = () => {
+      scrollChange()
+    }
+
+    // Use screen.orientation if available
+    if ('orientation' in screen && 'addEventListener' in screen.orientation) {
+      screen.orientation.addEventListener('change', state.current.orientationHandler)
+    } else if ('onorientationchange' in window) {
+      // Fallback to orientationchange event
+      window.addEventListener('orientationchange', state.current.orientationHandler)
     }
   }
 
