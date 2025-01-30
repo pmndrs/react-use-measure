@@ -1,45 +1,16 @@
 import * as React from 'react'
-import styled, { createGlobalStyle } from 'styled-components'
-import expect from 'expect'
 import { render, cleanup, RenderResult, fireEvent } from '@testing-library/react'
 import Polyfill from 'resize-observer-polyfill'
+import { afterEach, describe, it, expect } from 'vitest'
 
-import useMeasure, { Options } from '.'
-
-/**
- * Styles
- */
-
-const GlobalStyle = createGlobalStyle`
-    body, html {
-        margin: 0;
-    }
-
-    body {
-        height: 200vh;
-    }
-`
-
-const Wrapper = styled.div<{ scale: number }>`
-  transform: scale(${(props) => props.scale});
-  width: 500px;
-  height: 500px;
-  overflow: auto;
-`
-
-const Box = styled.div<{ big: boolean }>`
-  width: ${(p) => (p.big ? 400 : 200)}px;
-  height: ${(p) => (p.big ? 400 : 200)}px;
-  overflow: hidden;
-  font-size: 8px;
-`
+import useMeasure, { Options } from 'use-measure'
 
 /**
  * Helpers
  */
 
-const getBounds = (tools: RenderResult): ClientRect => JSON.parse(tools.getByTestId('box').innerHTML)
-const nextFrame = () => new Promise((resolve) => setTimeout(resolve, 1000 / 60))
+const getBounds = (tools: RenderResult): DOMRect => JSON.parse(tools.getByTestId('box').innerHTML)
+const nextFrame = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 function ignoreWindowErrors(test: () => void) {
@@ -83,13 +54,31 @@ describe('useMeasure', () => {
 
     return (
       <>
-        <GlobalStyle />
-        <Wrapper scale={scale} data-testid="wrapper">
-          <Box ref={!switchRef ? ref : undefined} data-testid="box" big={big} onClick={() => setBig(!big)}>
+        <style>{'body, html { margin: 0; } body { height: 200vh; }'}</style>
+        <div
+          data-testid="wrapper"
+          style={{
+            transform: `scale(${scale})`,
+            width: '500px',
+            height: '500px',
+            overflow: 'auto',
+          }}
+        >
+          <div
+            ref={!switchRef ? ref : undefined}
+            data-testid="box"
+            onClick={() => setBig(!big)}
+            style={{
+              width: `${big ? 400 : 200}px`,
+              height: `${big ? 400 : 200}px`,
+              overflow: 'hidden',
+              fontSize: '8px',
+            }}
+          >
             {JSON.stringify(bounds)}
-          </Box>
+          </div>
           <div style={{ width: 2000, height: 2000 }} />
-        </Wrapper>
+        </div>
         <div ref={switchRef ? ref : null}>Dummy</div>
       </>
     )
@@ -107,7 +96,7 @@ describe('useMeasure', () => {
   it('renders 1 additional time after first render', async () => {
     let count = 0
 
-    const tools = render(<Test onRender={() => count++} />)
+    render(<Test onRender={() => count++} />)
 
     await nextFrame()
 
@@ -214,7 +203,7 @@ describe('useMeasure', () => {
 
     ignoreWindowErrors(() => {
       expect(() => render(<Test />)).toThrow(
-        'This browser does not support ResizeObserver out of the box. See: https://github.com/react-spring/react-use-measure/#resize-observer-polyfills'
+        'This browser does not support ResizeObserver out of the box. See: https://github.com/react-spring/react-use-measure/#resize-observer-polyfills',
       )
     })
     ;(window as any).ResizeObserver = RO
@@ -226,7 +215,7 @@ describe('useMeasure', () => {
 
     ignoreWindowErrors(() => {
       expect(() => render(<Test polyfill />)).not.toThrow(
-        'This browser does not support ResizeObserver out of the box. See: https://github.com/react-spring/react-use-measure/#resize-observer-polyfills'
+        'This browser does not support ResizeObserver out of the box. See: https://github.com/react-spring/react-use-measure/#resize-observer-polyfills',
       )
     })
     ;(window as any).ResizeObserver = RO

@@ -1,19 +1,18 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "jsx": "react",
-    "pretty": true,
+    "outDir": "dist",
+    "target": "esnext",
+    "module": "esnext",
+    "lib": ["esnext", "dom"],
+    "moduleResolution": "bundler",
     "strict": true,
-    "skipLibCheck": true,
-    "declaration": true,
-    "removeComments": true,
-    "emitDeclarationOnly": true,
-    "outDir": "types",
-    "resolveJsonModule": true
-  },
-  "include": ["./src"],
-  "exclude": ["./node_modules/**/*"]
+    "pretty": true,
+    "noEmit": true,
+    "jsx": "react",
+    "forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true,
+    "paths": {
+      "use-measure": ["./src"]
+    }
+  }
 }
