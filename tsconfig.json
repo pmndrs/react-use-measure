@@ -11,6 +11,7 @@
     "jsx": "react",
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
     "paths": {
       "use-measure": ["./src"]
     }
