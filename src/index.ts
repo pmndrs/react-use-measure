@@ -149,7 +149,7 @@ function useMeasure(
   // add scroll-listeners / observers
   function addListeners() {
     if (!state.current.element) return
-    state.current.resizeObserver = new ResizeObserver(resizeChange)
+    state.current.resizeObserver = new ResizeObserver(scrollChange)
     state.current.resizeObserver!.observe(state.current.element)
     if (scroll && state.current.scrollContainers) {
       state.current.scrollContainers.forEach((scrollContainer) =>
