@@ -1,5 +1,25 @@
 import { useEffect, useState, useRef, useMemo } from 'react'
 
+// Transform-aware measurement utilities
+type RectLike = Pick<DOMRectReadOnly, 'x' | 'y' | 'width' | 'height' | 'top' | 'left' | 'right' | 'bottom'>
+
+function readClientRect(el: Element): DOMRectReadOnly {
+  return el.getBoundingClientRect()
+}
+
+function rectEquals(a: RectLike, b: RectLike, eps = 0.01): boolean {
+  return (
+    Math.abs(a.x - b.x) < eps &&
+    Math.abs(a.y - b.y) < eps &&
+    Math.abs(a.width - b.width) < eps &&
+    Math.abs(a.height - b.height) < eps &&
+    Math.abs(a.top - b.top) < eps &&
+    Math.abs(a.left - b.left) < eps &&
+    Math.abs(a.right - b.right) < eps &&
+    Math.abs(a.bottom - b.bottom) < eps
+  )
+}
+
 function createDebounce<T extends (...args: any[]) => void>(callback: T, ms: number) {
   let timeoutId: number
 
@@ -47,10 +67,11 @@ export type Options = {
   scroll?: boolean
   polyfill?: { new (cb: ResizeObserverCallback): ResizeObserver }
   offsetSize?: boolean
+  includeTransforms?: boolean
 }
 
 function useMeasure(
-  { debounce, scroll, polyfill, offsetSize }: Options = { debounce: 0, scroll: false, offsetSize: false },
+  { debounce, scroll, polyfill, offsetSize, includeTransforms }: Options = { debounce: 0, scroll: false, offsetSize: false, includeTransforms: false },
 ): Result {
   const ResizeObserver =
     polyfill || (typeof window === 'undefined' ? class ResizeObserver {} : (window as any).ResizeObserver)
@@ -81,9 +102,47 @@ function useMeasure(
     orientationHandler: null,
   })
 
+  // transform-aware measurement state
+  const rafState = useRef<{
+    rafId: number | null
+    visibilityHandler: (() => void) | null
+    scrollOrResizeHandler: (() => void) | null
+    prevRect: RectLike | null
+  }>({
+    rafId: null,
+    visibilityHandler: null,
+    scrollOrResizeHandler: null,
+    prevRect: null,
+  })
+
   // set actual debounce values early, so effects know if they should react accordingly
   const scrollDebounce = debounce ? (typeof debounce === 'number' ? debounce : debounce.scroll) : null
   const resizeDebounce = debounce ? (typeof debounce === 'number' ? debounce : debounce.resize) : null
+
+  // Transform-aware measurement function
+  const updateTransformAwareBounds = () => {
+    if (!state.current.element) return
+    
+    const rect = readClientRect(state.current.element)
+    const newBounds = {
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height,
+      bottom: rect.bottom,
+      right: rect.right,
+      x: rect.x,
+      y: rect.y,
+    }
+    
+    Object.freeze(newBounds)
+    
+    if (mounted.current && !rectEquals(rafState.current.prevRect || newBounds, newBounds)) {
+      rafState.current.prevRect = newBounds
+      state.current.lastBounds = newBounds
+      set(newBounds)
+    }
+  }
 
   // make sure to update state only as long as the component is truly mounted
   const mounted = useRef(false)
@@ -96,6 +155,12 @@ function useMeasure(
   const [forceRefresh, resizeChange, scrollChange] = useMemo(() => {
     const callback = () => {
       if (!state.current.element) return
+      
+      if (includeTransforms) {
+        updateTransformAwareBounds()
+        return
+      }
+      
       const { left, top, width, height, bottom, right, x, y } =
         state.current.element.getBoundingClientRect() as unknown as RectReadOnly
 
@@ -123,10 +188,72 @@ function useMeasure(
       resizeDebounce ? createDebounce(callback, resizeDebounce) : callback,
       scrollDebounce ? createDebounce(callback, scrollDebounce) : callback,
     ]
-  }, [set, offsetSize, scrollDebounce, resizeDebounce])
+  }, [set, offsetSize, scrollDebounce, resizeDebounce, includeTransforms])
+
+  // Transform-aware measurement management
+  function startTransformAwareMeasurement() {
+    if (!includeTransforms || !state.current.element || rafState.current.rafId) return
+
+    // Initial measurement
+    updateTransformAwareBounds()
+
+    // rAF loop for continuous monitoring
+    function tick() {
+      updateTransformAwareBounds()
+      rafState.current.rafId = requestAnimationFrame(tick)
+    }
+
+    // Visibility change handler
+    rafState.current.visibilityHandler = () => {
+      if (document.hidden) {
+        if (rafState.current.rafId) {
+          cancelAnimationFrame(rafState.current.rafId)
+          rafState.current.rafId = null
+        }
+      } else if (!rafState.current.rafId) {
+        rafState.current.rafId = requestAnimationFrame(tick)
+      }
+    }
+
+    // Scroll/resize handler for immediate updates
+    rafState.current.scrollOrResizeHandler = () => {
+      updateTransformAwareBounds()
+    }
+
+    // Start the rAF loop
+    rafState.current.rafId = requestAnimationFrame(tick)
+
+    // Add event listeners
+    document.addEventListener('visibilitychange', rafState.current.visibilityHandler, true)
+    window.addEventListener('scroll', rafState.current.scrollOrResizeHandler, true)
+    window.addEventListener('resize', rafState.current.scrollOrResizeHandler, true)
+  }
+
+  function stopTransformAwareMeasurement() {
+    if (rafState.current.rafId) {
+      cancelAnimationFrame(rafState.current.rafId)
+      rafState.current.rafId = null
+    }
+
+    if (rafState.current.visibilityHandler) {
+      document.removeEventListener('visibilitychange', rafState.current.visibilityHandler, true)
+      rafState.current.visibilityHandler = null
+    }
+
+    if (rafState.current.scrollOrResizeHandler) {
+      window.removeEventListener('scroll', rafState.current.scrollOrResizeHandler, true)
+      window.removeEventListener('resize', rafState.current.scrollOrResizeHandler, true)
+      rafState.current.scrollOrResizeHandler = null
+    }
+
+    rafState.current.prevRect = null
+  }
 
   // cleanup current scroll-listeners / observers
   function removeListeners() {
+    // Stop transform-aware measurement
+    stopTransformAwareMeasurement()
+
     if (state.current.scrollContainers) {
       state.current.scrollContainers.forEach((element) => element.removeEventListener('scroll', scrollChange, true))
       state.current.scrollContainers = null
@@ -149,8 +276,16 @@ function useMeasure(
   // add scroll-listeners / observers
   function addListeners() {
     if (!state.current.element) return
-    state.current.resizeObserver = new ResizeObserver(scrollChange)
-    state.current.resizeObserver!.observe(state.current.element)
+
+    if (includeTransforms) {
+      // Use transform-aware measurement instead of ResizeObserver
+      startTransformAwareMeasurement()
+    } else {
+      // Use traditional ResizeObserver
+      state.current.resizeObserver = new ResizeObserver(scrollChange)
+      state.current.resizeObserver!.observe(state.current.element)
+    }
+
     if (scroll && state.current.scrollContainers) {
       state.current.scrollContainers.forEach((scrollContainer) =>
         scrollContainer.addEventListener('scroll', scrollChange, { capture: true, passive: true }),
@@ -188,7 +323,7 @@ function useMeasure(
   useEffect(() => {
     removeListeners()
     addListeners()
-  }, [scroll, scrollChange, resizeChange])
+  }, [scroll, scrollChange, resizeChange, includeTransforms])
 
   // remove all listeners when the components unmounts
   useEffect(() => removeListeners, [])

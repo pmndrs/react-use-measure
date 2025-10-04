@@ -50,12 +50,30 @@ type Options = {
   polyfill?: { new (cb: ResizeObserverCallback): ResizeObserver }
   // Measure size using offsetHeight and offsetWidth to ignore parent scale transforms
   offsetSize?: boolean
+  // Measure visual (post-transform) bounds using getBoundingClientRect with rAF sampling
+  includeTransforms?: boolean
 }
 
 useMeasure(
   options: Options = { debounce: 0, scroll: false }
 ): [React.MutableRefObject<HTMLElement | SVGElement>, RectReadOnly]
 ```
+
+### Transform-aware measuring (opt-in)
+
+By default, `useMeasure` reports the layout box (fast and efficient). CSS transforms (like `scale()`) change what you see but not the layout box, so layout-based measurements don't reflect transforms.
+
+If you need the **visual** (post-transform) box, enable:
+
+```tsx
+const [ref, bounds] = useMeasure({ includeTransforms: true });
+```
+
+This uses `getBoundingClientRect()` under the hood and adds a small `requestAnimationFrame` sampler so transform-only changes are detected. It still updates on scroll/resize, and it pauses when the tab is hidden. Keep this option off unless you need it.
+
+**Example:** A 40×40 element with `transform: scale(0.75)` will report ~30×30 with `includeTransforms: true`, but ~40×40 with the default mode.
+
+> **Tip:** `offsetSize` is unrelated; it measures via `offsetWidth/offsetHeight` to ignore **parent** scaling. `includeTransforms` measures the element's **own** post-transform box.
 
 # ⚠️ Notes
 

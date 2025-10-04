@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { render, cleanup, RenderResult, fireEvent } from '@testing-library/react'
 import Polyfill from 'resize-observer-polyfill'
-import { afterEach, describe, it, expect } from 'vitest'
+import { afterEach, describe, it, expect, vi, beforeEach } from 'vitest'
 
 import useMeasure, { Options } from '../src/index'
 
@@ -12,6 +12,41 @@ import useMeasure, { Options } from '../src/index'
 const getBounds = (tools: RenderResult): DOMRect => JSON.parse(tools.getByTestId('box').innerHTML)
 const nextFrame = () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
+// Mock rAF for transform-aware tests
+let rafCallbacks: (() => void)[] = []
+let rafId = 0
+
+const mockRequestAnimationFrame = vi.fn((callback: () => void) => {
+  rafCallbacks.push(callback)
+  return ++rafId
+})
+
+const mockCancelAnimationFrame = vi.fn((id: number) => {
+  // Simple mock - just clear all callbacks
+  rafCallbacks = []
+})
+
+function advanceRaf() {
+  const callbacks = [...rafCallbacks]
+  rafCallbacks = []
+  callbacks.forEach(callback => callback())
+}
+
+function mockGetBoundingClientRect(rect: Partial<DOMRectReadOnly>) {
+  const defaultRect = {
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    toJSON: () => rect
+  }
+  return vi.fn(() => ({ ...defaultRect, ...rect }))
+}
 
 function ignoreWindowErrors(test: () => void) {
   const onErrorBackup = window.onerror
@@ -29,6 +64,13 @@ function ignoreWindowErrors(test: () => void) {
  * Tests
  */
 
+beforeEach(() => {
+  // Reset rAF mocks
+  rafCallbacks = []
+  rafId = 0
+  vi.clearAllMocks()
+})
+
 afterEach(() => {
   cleanup()
   window.scrollTo({ top: 0, left: 0 })
@@ -42,10 +84,11 @@ describe('useMeasure', () => {
     options?: Options
     polyfill?: boolean
     offsetSize?: boolean
+    includeTransforms?: boolean
   }
 
-  function Test({ switchRef, options, onRender, polyfill, scale = 1, offsetSize = false }: Props) {
-    const [ref, bounds] = useMeasure({ ...options, polyfill: polyfill ? Polyfill : undefined, offsetSize })
+  function Test({ switchRef, options, onRender, polyfill, scale = 1, offsetSize = false, includeTransforms = false }: Props) {
+    const [ref, bounds] = useMeasure({ ...options, polyfill: polyfill ? Polyfill : undefined, offsetSize, includeTransforms })
     const [big, setBig] = React.useState(false)
 
     if (onRender) {
@@ -219,5 +262,48 @@ describe('useMeasure', () => {
       )
     })
     ;(window as any).ResizeObserver = RO
+  })
+
+  describe('transform-aware mode', () => {
+    it('can be enabled without breaking existing functionality', async () => {
+      const tools = render(<Test includeTransforms />)
+      await nextFrame()
+      
+      // Should still measure correctly
+      const bounds = getBounds(tools)
+      expect(bounds.width).toBeGreaterThan(0)
+      expect(bounds.height).toBeGreaterThan(0)
+    })
+
+    it('demonstrates transform scale difference', async () => {
+      // Test with a scaled element
+      const tools = render(<Test includeTransforms scale={0.75} />)
+      
+      await nextFrame()
+      
+      const bounds = getBounds(tools)
+      
+      // With includeTransforms: true, we should get the visual (scaled) dimensions
+      // The element is 200x200 but scaled to 0.75, so visual should be ~150x150
+      expect(bounds.width).toBeCloseTo(150, 1)
+      expect(bounds.height).toBeCloseTo(150, 1)
+    })
+
+    it('demonstrates default mode vs transform mode difference', async () => {
+      // Test default mode (should report layout dimensions)
+      const defaultTools = render(<Test scale={0.75} />)
+      await nextFrame()
+      const defaultBounds = getBounds(defaultTools)
+      
+      // Test transform mode (should report visual dimensions)
+      const transformTools = render(<Test includeTransforms scale={0.75} />)
+      await nextFrame()
+      const transformBounds = getBounds(transformTools)
+      
+      // Default mode should report larger dimensions (layout box)
+      // Transform mode should report smaller dimensions (visual box)
+      expect(defaultBounds.width).toBeGreaterThan(transformBounds.width)
+      expect(defaultBounds.height).toBeGreaterThan(transformBounds.height)
+    })
   })
 })
