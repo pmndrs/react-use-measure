@@ -12,6 +12,9 @@
   "author": "Paul Henschel",
   "homepage": "https://github.com/pmndrs/react-use-measure",
   "repository": "https://github.com/pmndrs/react-use-measure",
+  "bugs": {
+    "url": "https://github.com/pmndrs/react-use-measure/issues"
+  },
   "license": "MIT",
   "files": [
     "dist/*",
