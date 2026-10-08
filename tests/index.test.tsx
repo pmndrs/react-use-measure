@@ -171,6 +171,8 @@ describe('useMeasure', () => {
 
     const wrapper = tools.getByTestId('wrapper')
 
+    await nextFrame()
+
     wrapper.scrollTo({ top: 200 })
     await nextFrame()
     wrapper.scrollTo({ top: 201 })
@@ -219,5 +221,29 @@ describe('useMeasure', () => {
       )
     })
     ;(window as any).ResizeObserver = RO
+  })
+  it('uses the resize debounce for ResizeObserver notifications', async () => {
+    const tools = render(<Test options={{ debounce: { scroll: 500, resize: 0 } }} />)
+
+    await nextFrame()
+    expect(getBounds(tools).width).toBe(200)
+
+    fireEvent.click(tools.getByTestId('box'))
+    await nextFrame()
+    expect(getBounds(tools).width).toBe(400)
+  })
+
+  it('debounces ResizeObserver notifications with the resize delay', async () => {
+    const tools = render(<Test options={{ debounce: { scroll: 0, resize: 100 } }} />)
+
+    await wait(150)
+    expect(getBounds(tools).width).toBe(200)
+
+    fireEvent.click(tools.getByTestId('box'))
+    await nextFrame()
+    expect(getBounds(tools).width).toBe(200)
+
+    await wait(150)
+    expect(getBounds(tools).width).toBe(400)
   })
 })
